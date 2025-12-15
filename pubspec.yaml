@@ -41,6 +41,8 @@ dependencies:
   onboarding: ^4.0.2
   gap: ^3.0.1
   image_picker: ^0.8.7+5
+  supabase_flutter: ^2.8.0
+  flutter_dotenv: ^5.2.1
 
 
 dev_dependencies:
@@ -69,6 +71,7 @@ flutter:
   assets:
     - assets/images/
     - assets/icons/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

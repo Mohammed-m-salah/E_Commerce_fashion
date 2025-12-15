@@ -1,8 +1,10 @@
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
+import 'package:e_commerce_fullapp/feature/auth/data/auth_controller.dart';
 import 'package:e_commerce_fullapp/shared/custome_button.dart';
 import 'package:e_commerce_fullapp/shared/custome_textformfield.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 
 class ResetPassword extends StatefulWidget {
   const ResetPassword({super.key});
@@ -12,6 +14,19 @@ class ResetPassword extends StatefulWidget {
 }
 
 class _ResetPasswordState extends State<ResetPassword> {
+  late final AuthController authController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use find if already exists, otherwise put new instance
+    if (Get.isRegistered<AuthController>()) {
+      authController = Get.find<AuthController>();
+    } else {
+      authController = Get.put(AuthController());
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -55,11 +70,19 @@ class _ResetPasswordState extends State<ResetPassword> {
               child: CustomTextFormField(
                 hintText: "Email",
                 prefixIcon: const Icon(Icons.email_outlined),
+                controller: authController.emailController,
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(15.0),
-              child: CustomButton(text: 'Send reset link', onPressed: () {}),
+              child: Obx(
+                () => authController.isLoading.value
+                    ? const Center(child: CircularProgressIndicator())
+                    : CustomButton(
+                        text: 'Send reset link',
+                        onPressed: () => authController.resetPassword(),
+                      ),
+              ),
             ),
           ],
         ),
