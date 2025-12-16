@@ -30,6 +30,22 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
+      // Check if email already exists by attempting to sign in
+      final emailExists = await _checkEmailExists(emailController.text.trim());
+
+      if (emailExists) {
+        Get.snackbar(
+          'Error',
+          'This email is already registered. Please use a different email or sign in.',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+        );
+        isLoading.value = false;
+        return;
+      }
+
       final response = await supabase.auth.signUp(
         email: emailController.text.trim(),
         password: passwordController.text,
@@ -49,9 +65,18 @@ class AuthController extends GetxController {
         _clearControllers();
       }
     } on AuthException catch (e) {
+      // Check for duplicate email error
+      String errorMessage = e.message;
+
+      if (e.message.toLowerCase().contains('already registered') ||
+          e.message.toLowerCase().contains('user already registered') ||
+          e.message.toLowerCase().contains('email address already in use')) {
+        errorMessage = 'This email is already registered. Please use a different email or sign in.';
+      }
+
       Get.snackbar(
         'Error',
-        e.message,
+        errorMessage,
         backgroundColor: Colors.red,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -66,6 +91,32 @@ class AuthController extends GetxController {
       );
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Check if email already exists
+  Future<bool> _checkEmailExists(String email) async {
+    try {
+      // Try to initiate password reset - this only works if email exists
+      await supabase.auth.resetPasswordForEmail(
+        email,
+        redirectTo: 'io.supabase.ecommerce://reset-password',
+      );
+      // If no error, email exists
+      return true;
+    } on AuthException catch (e) {
+      // Check various error messages
+      if (e.message.toLowerCase().contains('not found') ||
+          e.message.toLowerCase().contains('invalid') ||
+          e.message.toLowerCase().contains('no user') ||
+          e.message.toLowerCase().contains('user not found')) {
+        return false;
+      }
+      // For any other error, assume email might exist to be safe
+      return true;
+    } catch (e) {
+      // On any error, assume email exists to prevent duplicates
+      return true;
     }
   }
 
@@ -143,6 +194,7 @@ class AuthController extends GetxController {
 
       await supabase.auth.resetPasswordForEmail(
         emailController.text.trim(),
+        redirectTo: 'io.supabase.ecommerce://reset-password',
       );
 
       Get.snackbar(

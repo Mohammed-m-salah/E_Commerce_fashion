@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,12 @@ void main() async {
   await Supabase.initialize(
     url: SupabaseConfig.supabaseUrl,
     anonKey: SupabaseConfig.supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(
+      authFlowType: AuthFlowType.pkce,
+    ),
+    realtimeClientOptions: const RealtimeClientOptions(
+      logLevel: RealtimeLogLevel.info,
+    ),
   );
 
   await GetStorage.init();
@@ -28,8 +35,48 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  StreamSubscription<AuthState>? _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Listen to auth state changes for email verification and deep links
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      final event = data.event;
+      final session = data.session;
+
+      // When user confirms email or completes authentication via deep link
+      if (event == AuthChangeEvent.signedIn && session != null) {
+        // Navigate to home screen
+        Get.offAllNamed('/home');
+      } else if (event == AuthChangeEvent.passwordRecovery) {
+        // Handle password recovery deep link
+        // You can navigate to a password reset screen here if needed
+        Get.snackbar(
+          'Password Recovery',
+          'Please enter your new password',
+          backgroundColor: Colors.blue,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
