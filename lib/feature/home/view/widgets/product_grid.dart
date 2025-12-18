@@ -1,32 +1,64 @@
+import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
 import 'package:e_commerce_fullapp/feature/product_details/view/product_details_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 
 class ProductGrid extends StatelessWidget {
-  const ProductGrid({super.key});
+  final int? maxItems;
+
+  const ProductGrid({super.key, this.maxItems});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 10, // number of items
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.8,
-        ),
-        itemBuilder: (context, index) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) {
-                return ProductDetailsView();
-              }));
-            },
-            child: Container(
+    // Get ProductController instance
+    final controller = Get.find<ProductController>();
+
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(50.0),
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+
+      if (controller.filteredProducts.isEmpty) {
+        return const Center(
+          child: Padding(
+            padding: EdgeInsets.all(50.0),
+            child: Text('No products found'),
+          ),
+        );
+      }
+
+      final itemCount = maxItems != null && controller.filteredProducts.length > maxItems!
+          ? maxItems!
+          : controller.filteredProducts.length;
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: itemCount,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.8,
+          ),
+          itemBuilder: (context, index) {
+            final product = controller.filteredProducts[index];
+
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (_) {
+                  return ProductDetailsView();
+                }));
+              },
+              child: Container(
               decoration: BoxDecoration(
                 color:
                     Colors.grey.shade200.withOpacity(0.8), // grey with opacity
@@ -63,12 +95,31 @@ class ProductGrid extends StatelessWidget {
                             topLeft: Radius.circular(12),
                             topRight: Radius.circular(12),
                           ),
-                          child: Image.asset(
-                            'assets/images/shoe-removebg-preview.png',
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: double.infinity,
-                          ),
+                          child: product.imageUrl.isNotEmpty
+                              ? Image.network(
+                                  product.imageUrl,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Icon(
+                                      Icons.image_not_supported,
+                                      size: 50,
+                                      color: Colors.grey,
+                                    );
+                                  },
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  },
+                                )
+                              : const Icon(
+                                  Icons.image,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
                         ),
                       ),
                       Positioned(
@@ -99,28 +150,29 @@ class ProductGrid extends StatelessWidget {
                           ),
                         ),
                       ),
-                      Positioned(
-                        top: 8,
-                        right: 90,
-                        child: Container(
-                          height: 30,
-                          width: 100,
-                          decoration: BoxDecoration(
-                            color: Color(0xFFff5722),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: const Center(
+                      if (product.stock < 10)
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFff5722),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
                             child: Text(
-                              '63% Off',
-                              style: TextStyle(
+                              'Only ${product.stock} left',
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: 12,
                               ),
                             ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                   const Gap(4),
@@ -128,9 +180,9 @@ class ProductGrid extends StatelessWidget {
                   // Product Name
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: const Text(
-                      'Nike Air Max',
-                      style: TextStyle(
+                    child: Text(
+                      product.name,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 20,
                       ),
@@ -145,7 +197,7 @@ class ProductGrid extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Text(
-                      'Footwear',
+                      product.category,
                       style: TextStyle(
                         fontSize: 18,
                         color: Colors.grey.shade700,
@@ -155,28 +207,36 @@ class ProductGrid extends StatelessWidget {
 
                   const SizedBox(height: 6),
 
-                  // Price row
+                  // Price row with rating
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Row(
                       children: [
-                        const Text(
-                          '\$120',
-                          style: TextStyle(
+                        Text(
+                          '\$${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
                             color: Colors.black,
                           ),
                         ),
-                        const Gap(10),
-                        Text(
-                          '\$150',
-                          style: TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                            color: Colors.grey.shade700,
-                          ),
+                        const Spacer(),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.star,
+                              size: 16,
+                              color: Colors.amber,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              product.rating.toString(),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade700,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -185,8 +245,9 @@ class ProductGrid extends StatelessWidget {
               ),
             ),
           );
-        },
-      ),
-    );
+          },
+        ),
+      );
+    });
   }
 }

@@ -30,22 +30,6 @@ class AuthController extends GetxController {
     try {
       isLoading.value = true;
 
-      // Check if email already exists by attempting to sign in
-      final emailExists = await _checkEmailExists(emailController.text.trim());
-
-      if (emailExists) {
-        Get.snackbar(
-          'Error',
-          'This email is already registered. Please use a different email or sign in.',
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 4),
-        );
-        isLoading.value = false;
-        return;
-      }
-
       final response = await supabase.auth.signUp(
         email: emailController.text.trim(),
         password: passwordController.text,
@@ -55,14 +39,33 @@ class AuthController extends GetxController {
       );
 
       if (response.user != null) {
-        Get.snackbar(
-          'Success',
-          'Account created! Please check your email to verify your account.',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        _clearControllers();
+        // Check if email confirmation is required
+        final session = response.session;
+
+        if (session != null) {
+          // User is already signed in (email confirmation disabled)
+          Get.snackbar(
+            'Success',
+            'Account created successfully!',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          _clearControllers();
+          Get.offAllNamed('/home');
+        } else {
+          // Email confirmation required
+          Get.snackbar(
+            'Success',
+            'Account created! Please check your email to verify your account.',
+            backgroundColor: Colors.green,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+            duration: const Duration(seconds: 4),
+          );
+          _clearControllers();
+          Get.offAllNamed('/signin');
+        }
       }
     } on AuthException catch (e) {
       // Check for duplicate email error
@@ -91,32 +94,6 @@ class AuthController extends GetxController {
       );
     } finally {
       isLoading.value = false;
-    }
-  }
-
-  // Check if email already exists
-  Future<bool> _checkEmailExists(String email) async {
-    try {
-      // Try to initiate password reset - this only works if email exists
-      await supabase.auth.resetPasswordForEmail(
-        email,
-        redirectTo: 'io.supabase.ecommerce://reset-password',
-      );
-      // If no error, email exists
-      return true;
-    } on AuthException catch (e) {
-      // Check various error messages
-      if (e.message.toLowerCase().contains('not found') ||
-          e.message.toLowerCase().contains('invalid') ||
-          e.message.toLowerCase().contains('no user') ||
-          e.message.toLowerCase().contains('user not found')) {
-        return false;
-      }
-      // For any other error, assume email might exist to be safe
-      return true;
-    } catch (e) {
-      // On any error, assume email exists to prevent duplicates
-      return true;
     }
   }
 

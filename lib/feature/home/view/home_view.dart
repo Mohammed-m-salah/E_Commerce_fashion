@@ -1,6 +1,7 @@
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
 import 'package:e_commerce_fullapp/feature/all_procucts/view/all_products_view.dart';
 import 'package:e_commerce_fullapp/feature/cart/view/cart_view.dart';
+import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/categoris.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/header.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/newcollection.dart';
@@ -9,6 +10,8 @@ import 'package:e_commerce_fullapp/feature/home/view/widgets/product_grid.dart';
 import 'package:e_commerce_fullapp/shared/custome_searchfield.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -18,8 +21,30 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  final supabase = Supabase.instance.client;
+  String userName = 'User';
+  String userAvatar = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final user = supabase.auth.currentUser;
+    if (user != null) {
+      setState(() {
+        userName = user.userMetadata?['full_name'] ?? user.email?.split('@')[0] ?? 'User';
+        userAvatar = user.userMetadata?['avatar_url'] ?? '';
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final productController = Get.find<ProductController>();
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -38,11 +63,13 @@ class _HomeViewState extends State<HomeView> {
                     return CartView();
                   }));
                 },
-                userName: 'mohammed',
-                avatarAssetPath: 'assets/images/avatar.jpg',
+                userName: userName,
+                avatarAssetPath: userAvatar.isNotEmpty ? userAvatar : 'assets/images/avatar.jpg',
               ),
               CustomSearchField(
-                onChanged: (value) => debugPrint("Searching: $value"),
+                onChanged: (value) {
+                  productController.searchProducts(value);
+                },
                 onFilterTap: () => debugPrint("Filter tapped"),
               ),
               const Gap(5),
@@ -76,7 +103,7 @@ class _HomeViewState extends State<HomeView> {
                 ),
               ),
               const Gap(12),
-              ProductGrid(),
+              const ProductGrid(maxItems: 6),
             ],
           ),
         ),

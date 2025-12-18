@@ -18,6 +18,10 @@ class Homeheader extends StatelessWidget {
     this.onThemeToggleTap,
   });
 
+  bool _isNetworkImage(String path) {
+    return path.startsWith('http://') || path.startsWith('https://');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -29,12 +33,33 @@ class Homeheader extends StatelessWidget {
             backgroundColor: Colors.amber[300],
             child: ClipRRect(
               borderRadius: BorderRadius.circular(35),
-              child: Image.asset(
-                avatarAssetPath,
-                fit: BoxFit.cover,
-                width: 70,
-                height: 70,
-              ),
+              child: _isNetworkImage(avatarAssetPath)
+                  ? Image.network(
+                      avatarAssetPath,
+                      fit: BoxFit.cover,
+                      width: 70,
+                      height: 70,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Image.asset(
+                          'assets/images/avatar.jpg',
+                          fit: BoxFit.cover,
+                          width: 70,
+                          height: 70,
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        );
+                      },
+                    )
+                  : Image.asset(
+                      avatarAssetPath,
+                      fit: BoxFit.cover,
+                      width: 70,
+                      height: 70,
+                    ),
             ),
           ),
           const SizedBox(width: 12),
