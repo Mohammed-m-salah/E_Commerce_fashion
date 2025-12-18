@@ -55,7 +55,7 @@ class ProductGrid extends StatelessWidget {
             return GestureDetector(
               onTap: () {
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
-                  return ProductDetailsView();
+                  return ProductDetailsView(product: product);
                 }));
               },
               child: Container(
