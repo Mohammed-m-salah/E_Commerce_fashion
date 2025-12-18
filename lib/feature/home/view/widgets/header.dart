@@ -1,4 +1,6 @@
+import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class Homeheader extends StatelessWidget {
   final String userName;
@@ -84,10 +86,54 @@ class Homeheader extends StatelessWidget {
             icon: Icon(Icons.notifications_none_outlined,
                 size: 28, color: Colors.grey.shade600),
           ),
-          IconButton(
-            onPressed: onCartTap,
-            icon: Icon(Icons.shopping_bag_outlined,
-                size: 28, color: Colors.grey.shade600),
+          Builder(
+            builder: (context) {
+              final cartController = Get.find<CartController>();
+
+              return Obx(() {
+                final cartCount = cartController.uniqueItemCount;
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    IconButton(
+                      onPressed: onCartTap,
+                      icon: Icon(
+                        Icons.shopping_bag_outlined,
+                        size: 28,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    if (cartCount > 0)
+                      Positioned(
+                        right: 6,
+                        top: 6,
+                        child: Container(
+                          padding: EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: Color(0xFFff5722),
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: BoxConstraints(
+                            minWidth: 18,
+                            minHeight: 18,
+                          ),
+                          child: Center(
+                            child: Text(
+                              cartCount > 99 ? '99+' : '$cartCount',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              });
+            },
           ),
           IconButton(
             onPressed: onThemeToggleTap,

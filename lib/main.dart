@@ -2,7 +2,9 @@ import 'package:e_commerce_fullapp/core/config/supabase_config.dart';
 import 'package:e_commerce_fullapp/core/theme/app_theme.dart';
 import 'package:e_commerce_fullapp/core/theme/them_controller.dart';
 import 'package:e_commerce_fullapp/feature/auth/view/sign_in_view.dart';
+import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
+import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
 import 'package:e_commerce_fullapp/root.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -33,6 +35,8 @@ void main() async {
     await GetStorage.init();
     Get.put(ThemeController());
     Get.put(ProductController());
+    Get.put(WishlistController());
+    Get.put(CartController());
     runApp(const MyApp());
   } catch (e) {
     print('❌ Initialization Error: $e');

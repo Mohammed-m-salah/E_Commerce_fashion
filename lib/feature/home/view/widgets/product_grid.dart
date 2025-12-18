@@ -1,5 +1,6 @@
 import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
 import 'package:e_commerce_fullapp/feature/product_details/view/product_details_view.dart';
+import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
@@ -13,6 +14,7 @@ class ProductGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     // Get ProductController instance
     final controller = Get.find<ProductController>();
+    final wishlistController = Get.find<WishlistController>();
 
     return Obx(() {
       if (controller.isLoading.value) {
@@ -139,15 +141,19 @@ class ProductGrid extends StatelessWidget {
                               ),
                             ],
                           ),
-                          child: IconButton(
+                          child: Obx(() => IconButton(
                             padding: EdgeInsets.zero,
-                            icon: const Icon(
-                              Icons.favorite_border,
+                            icon: Icon(
+                              wishlistController.isInWishlist(product.id)
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
                               size: 18,
                               color: Colors.red,
                             ),
-                            onPressed: () {},
-                          ),
+                            onPressed: () {
+                              wishlistController.toggleWishlist(product);
+                            },
+                          )),
                         ),
                       ),
                       if (product.stock < 10)

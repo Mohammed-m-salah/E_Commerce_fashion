@@ -1,9 +1,12 @@
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
+import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/data/product_model.dart';
 import 'package:e_commerce_fullapp/feature/product_details/view/widgets/header_product_details.dart';
+import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
 import 'package:e_commerce_fullapp/shared/custome_button.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 
 class ProductDetailsView extends StatefulWidget {
   final Product product;
@@ -28,6 +31,40 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                 // Header
                 const HeaderProductDetails(),
                 const Gap(20),
+
+                // Wishlist Toggle Button
+                Obx(() {
+                  final wishlistController = Get.find<WishlistController>();
+                  final isInWishlist = wishlistController.isInWishlist(widget.product.id);
+
+                  return Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 4,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                          isInWishlist ? Icons.favorite : Icons.favorite_border,
+                          color: Colors.red,
+                          size: 28,
+                        ),
+                        onPressed: () {
+                          wishlistController.toggleWishlist(widget.product);
+                        },
+                      ),
+                    ),
+                  );
+                }),
+                const Gap(10),
 
                 // Product Image
                 Container(
@@ -201,13 +238,8 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                         textColor: Colors.black,
                         text: 'Add To Cart',
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${widget.product.name} added to cart!'),
-                              backgroundColor: Colors.green,
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
+                          final cartController = Get.find<CartController>();
+                          cartController.addToCart(widget.product);
                         },
                       ),
                     ),
