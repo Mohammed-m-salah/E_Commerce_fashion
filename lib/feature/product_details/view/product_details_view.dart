@@ -7,6 +7,8 @@ import 'package:e_commerce_fullapp/shared/custome_button.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProductDetailsView extends StatefulWidget {
   final Product product;
@@ -77,24 +79,19 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: widget.product.imageUrl.isNotEmpty
-                        ? Image.network(
-                            widget.product.imageUrl,
+                        ? CachedNetworkImage(
+                            imageUrl: widget.product.imageUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return const Center(
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  size: 80,
-                                  color: Colors.grey,
-                                ),
-                              );
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            },
+                            width: double.infinity,
+                            height: double.infinity,
+                            placeholder: (context, url) => Bone.square(size: 300, borderRadius: BorderRadius.circular(16)),
+                            errorWidget: (context, url, error) => const Center(
+                              child: Icon(
+                                Icons.image_not_supported,
+                                size: 80,
+                                color: Colors.grey,
+                              ),
+                            ),
                           )
                         : const Center(
                             child: Icon(

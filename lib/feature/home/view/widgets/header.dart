@@ -1,6 +1,11 @@
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+import 'package:e_commerce_fullapp/core/theme/app_theme.dart';
+import 'package:e_commerce_fullapp/core/theme/them_controller.dart';
 import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class Homeheader extends StatelessWidget {
   final String userName;
@@ -36,25 +41,18 @@ class Homeheader extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(35),
               child: _isNetworkImage(avatarAssetPath)
-                  ? Image.network(
-                      avatarAssetPath,
+                  ? CachedNetworkImage(
+                      imageUrl: avatarAssetPath,
                       fit: BoxFit.cover,
                       width: 70,
                       height: 70,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Image.asset(
-                          'assets/images/avatar.jpg',
-                          fit: BoxFit.cover,
-                          width: 70,
-                          height: 70,
-                        );
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        );
-                      },
+                      placeholder: (context, url) => Bone.circle(size: 70),
+                      errorWidget: (context, url, error) => Image.asset(
+                        'assets/images/avatar.jpg',
+                        fit: BoxFit.cover,
+                        width: 70,
+                        height: 70,
+                      ),
                     )
                   : Image.asset(
                       avatarAssetPath,
@@ -135,9 +133,28 @@ class Homeheader extends StatelessWidget {
               });
             },
           ),
-          IconButton(
-            onPressed: onThemeToggleTap,
-            icon: Icon(Icons.dark_mode, size: 28, color: Colors.grey.shade600),
+          GetBuilder<ThemeController>(
+            builder: (themeController) {
+              return ThemeSwitcher(
+                clipper: const ThemeSwitcherCircleClipper(),
+                builder: (context) {
+                  return IconButton(
+                    onPressed: () {
+                      final newTheme = themeController.isDarkMode
+                          ? AppThemes.lightTheme
+                          : AppThemes.darkTheme;
+                      ThemeSwitcher.of(context).changeTheme(theme: newTheme);
+                      themeController.toggelTheme();
+                    },
+                    icon: Icon(
+                      themeController.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                      size: 28,
+                      color: Colors.grey.shade600,
+                    ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

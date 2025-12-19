@@ -1,3 +1,4 @@
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:e_commerce_fullapp/core/config/supabase_config.dart';
 import 'package:e_commerce_fullapp/core/theme/app_theme.dart';
 import 'package:e_commerce_fullapp/core/theme/them_controller.dart';
@@ -138,21 +139,27 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final themeController = Get.find<ThemeController>();
 
-    return GetMaterialApp(
-      title: 'E-Commerce App',
-      debugShowCheckedModeBanner: false,
-      theme: AppThemes.lightTheme,
-      darkTheme: AppThemes.darkTheme,
-      themeMode: themeController.theme,
-      defaultTransition: Transition.fade,
-      initialRoute: _getInitialRoute(),
-      getPages: [
-        GetPage(name: '/signin', page: () => const Sigin_view()),
-        GetPage(name: '/home', page: () => const Root()),
-      ],
-      // Global error handler
-      builder: (context, widget) {
-        return widget ?? const SizedBox.shrink();
+    return ThemeProvider(
+      initTheme: themeController.isDarkMode ? AppThemes.darkTheme : AppThemes.lightTheme,
+      duration: const Duration(milliseconds: 500),
+      builder: (context, theme) {
+        return GetMaterialApp(
+          title: 'E-Commerce App',
+          debugShowCheckedModeBanner: false,
+          theme: theme,
+          defaultTransition: Transition.fade,
+          initialRoute: _getInitialRoute(),
+          getPages: [
+            GetPage(name: '/signin', page: () => const Sigin_view()),
+            GetPage(name: '/home', page: () => const Root()),
+          ],
+          // Global error handler
+          builder: (context, widget) {
+            return ThemeSwitchingArea(
+              child: widget ?? const SizedBox.shrink(),
+            );
+          },
+        );
       },
     );
   }

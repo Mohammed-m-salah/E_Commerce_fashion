@@ -43,6 +43,9 @@ dependencies:
   image_picker: ^0.8.7+5
   supabase_flutter: ^2.8.0
   flutter_dotenv: ^5.2.1
+  skeletonizer: ^1.4.2
+  cached_network_image: ^3.4.1
+  animated_theme_switcher: ^2.0.10
 
 
 dev_dependencies:

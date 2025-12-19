@@ -1,3 +1,4 @@
+import 'package:e_commerce_fullapp/core/theme/them_controller.dart';
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
 import 'package:e_commerce_fullapp/feature/all_procucts/view/all_products_view.dart';
 import 'package:e_commerce_fullapp/feature/cart/view/cart_view.dart';
@@ -44,6 +45,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     final productController = Get.find<ProductController>();
+    final themeController = Get.find<ThemeController>();
 
     return Scaffold(
       body: SafeArea(
@@ -62,6 +64,9 @@ class _HomeViewState extends State<HomeView> {
                   Navigator.push(context, MaterialPageRoute(builder: (_) {
                     return CartView();
                   }));
+                },
+                onThemeToggleTap: () {
+                  themeController.toggelTheme();
                 },
                 userName: userName,
                 avatarAssetPath: userAvatar.isNotEmpty ? userAvatar : 'assets/images/avatar.jpg',

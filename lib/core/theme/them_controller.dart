@@ -11,10 +11,7 @@ class ThemeController extends GetxController {
   void saveTheme(bool isDarkMode) => _box.write(_key, isDarkMode);
 
   void toggelTheme() {
-    Future.delayed(const Duration(milliseconds: 50), () {
-      Get.changeThemeMode(_loadTheme() ? ThemeMode.light : ThemeMode.dark);
-      saveTheme(!_loadTheme());
-      update();
-    });
+    saveTheme(!_loadTheme());
+    update();
   }
 }

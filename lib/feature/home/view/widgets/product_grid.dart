@@ -1,9 +1,12 @@
 import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
+import 'package:e_commerce_fullapp/feature/home/data/product_model.dart';
 import 'package:e_commerce_fullapp/feature/product_details/view/product_details_view.dart';
 import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:skeletonizer/skeletonizer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProductGrid extends StatelessWidget {
   final int? maxItems;
@@ -17,16 +20,7 @@ class ProductGrid extends StatelessWidget {
     final wishlistController = Get.find<WishlistController>();
 
     return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(50.0),
-            child: CircularProgressIndicator(),
-          ),
-        );
-      }
-
-      if (controller.filteredProducts.isEmpty) {
+      if (controller.filteredProducts.isEmpty && !controller.isLoading.value) {
         return const Center(
           child: Padding(
             padding: EdgeInsets.all(50.0),
@@ -35,24 +29,30 @@ class ProductGrid extends StatelessWidget {
         );
       }
 
-      final itemCount = maxItems != null && controller.filteredProducts.length > maxItems!
-          ? maxItems!
-          : controller.filteredProducts.length;
+      final itemCount = controller.isLoading.value
+          ? 6
+          : (maxItems != null && controller.filteredProducts.length > maxItems!
+              ? maxItems!
+              : controller.filteredProducts.length);
 
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: itemCount,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 0.8,
-          ),
-          itemBuilder: (context, index) {
-            final product = controller.filteredProducts[index];
+        child: Skeletonizer(
+          enabled: controller.isLoading.value,
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: itemCount,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.8,
+            ),
+            itemBuilder: (context, index) {
+              final product = controller.isLoading.value
+                  ? _getDummyProduct()
+                  : controller.filteredProducts[index];
 
             return GestureDetector(
               onTap: () {
@@ -98,24 +98,17 @@ class ProductGrid extends StatelessWidget {
                             topRight: Radius.circular(12),
                           ),
                           child: product.imageUrl.isNotEmpty
-                              ? Image.network(
-                                  product.imageUrl,
+                              ? CachedNetworkImage(
+                                  imageUrl: product.imageUrl,
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                   height: double.infinity,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return const Icon(
-                                      Icons.image_not_supported,
-                                      size: 50,
-                                      color: Colors.grey,
-                                    );
-                                  },
-                                  loadingBuilder: (context, child, loadingProgress) {
-                                    if (loadingProgress == null) return child;
-                                    return const Center(
-                                      child: CircularProgressIndicator(),
-                                    );
-                                  },
+                                  placeholder: (context, url) => Bone.square(size: 120),
+                                  errorWidget: (context, url, error) => const Icon(
+                                    Icons.image_not_supported,
+                                    size: 50,
+                                    color: Colors.grey,
+                                  ),
                                 )
                               : const Icon(
                                   Icons.image,
@@ -252,8 +245,23 @@ class ProductGrid extends StatelessWidget {
             ),
           );
           },
+          ),
         ),
       );
     });
+  }
+
+  // Helper function to create dummy product for skeleton
+  static Product _getDummyProduct() {
+    return Product(
+      id: '0',
+      name: 'Loading Product Name',
+      description: 'Loading description',
+      category: 'Loading Category',
+      price: 99.99,
+      rating: 4.5,
+      imageUrl: '',
+      stock: 10,
+    );
   }
 }

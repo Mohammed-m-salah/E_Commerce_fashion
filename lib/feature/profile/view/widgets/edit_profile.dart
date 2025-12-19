@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -61,15 +62,15 @@ class _EditProfileState extends State<EditProfile> {
     return Scaffold(
       body: SafeArea(
         child: Obx(
-          () => profileController.isLoading.value
-              ? const Center(child: CircularProgressIndicator())
-              : Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        const HeaderEditProfile(),
-                        const Gap(30),
+          () => Skeletonizer(
+            enabled: profileController.isLoading.value,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const HeaderEditProfile(),
+                    const Gap(30),
 
                         // Circle Avatar
                         GetBuilder<ProfileController>(
@@ -163,10 +164,11 @@ class _EditProfileState extends State<EditProfile> {
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
+              ),
+            ),
+          ),
         ),
       ),
     );
