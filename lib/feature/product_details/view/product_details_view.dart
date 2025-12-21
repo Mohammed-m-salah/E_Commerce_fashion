@@ -1,5 +1,6 @@
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
 import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
+import 'package:e_commerce_fullapp/feature/check_out/view/checkout_view.dart';
 import 'package:e_commerce_fullapp/feature/home/data/product_model.dart';
 import 'package:e_commerce_fullapp/feature/product_details/view/widgets/header_product_details.dart';
 import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
@@ -248,11 +249,28 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                         textColor: Colors.white,
                         text: 'Buy Now',
                         onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: const Text('Proceeding to checkout...'),
-                              backgroundColor: Colors.blue,
-                              duration: const Duration(seconds: 2),
+                          final cartController = Get.find<CartController>();
+
+                          // Check if product has stock
+                          if (widget.product.stock <= 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Sorry, this product is out of stock'),
+                                backgroundColor: Colors.red,
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            return;
+                          }
+
+                          // Add to cart if not already in cart
+                          cartController.addToCart(widget.product);
+
+                          // Navigate to checkout
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const CheckOutView(),
                             ),
                           );
                         },

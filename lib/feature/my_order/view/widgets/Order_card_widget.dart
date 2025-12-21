@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class OrderCard extends StatelessWidget {
@@ -7,7 +8,7 @@ class OrderCard extends StatelessWidget {
   final String status;
   final Color statusColor;
   final Color statusBg;
-  final String image; // 👈 جديد
+  final String image; // يمكن أن يكون URL أو asset path
 
   const OrderCard({
     super.key,
@@ -25,7 +26,9 @@ class OrderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.white,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -41,10 +44,15 @@ class OrderCard extends StatelessWidget {
             height: 60,
             width: 60,
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey.shade700
+                  : Colors.grey.shade100,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Image.asset(image, fit: BoxFit.contain),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: _buildImage(),
+            ),
           ),
 
           const SizedBox(width: 12),
@@ -82,6 +90,50 @@ class OrderCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// بناء الصورة - يدعم كل من asset images و network images
+  Widget _buildImage() {
+    if (image.isEmpty) {
+      return const Icon(
+        Icons.shopping_bag_outlined,
+        size: 30,
+        color: Colors.grey,
+      );
+    }
+
+    // إذا كانت الصورة URL (تبدأ بـ http أو https)
+    if (image.startsWith('http://') || image.startsWith('https://')) {
+      return CachedNetworkImage(
+        imageUrl: image,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+        errorWidget: (context, url, error) => const Icon(
+          Icons.image_not_supported,
+          size: 30,
+          color: Colors.grey,
+        ),
+      );
+    }
+
+    // إذا كانت الصورة asset
+    return Image.asset(
+      image,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return const Icon(
+          Icons.image_not_supported,
+          size: 30,
+          color: Colors.grey,
+        );
+      },
     );
   }
 }

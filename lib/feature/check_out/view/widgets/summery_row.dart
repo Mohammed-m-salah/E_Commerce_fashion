@@ -28,7 +28,7 @@ class SummaryRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? 18 : 16,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: isTotal ? const Color(0xFFff5722) : Colors.black,
+            color: isTotal ? const Color(0xFFff5722) : null,
           ),
         ),
       ],

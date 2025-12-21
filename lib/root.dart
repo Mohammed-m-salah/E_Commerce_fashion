@@ -39,7 +39,7 @@ class _RootState extends State<Root> {
       bottomNavigationBar: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
           borderRadius: BorderRadius.circular(30),
           boxShadow: [
             BoxShadow(
@@ -61,8 +61,8 @@ class _RootState extends State<Root> {
               controller.jumpToPage(index);
             },
             type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
-            selectedItemColor: Color(0xFFff5722),
+            backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+            selectedItemColor: const Color(0xFFff5722),
             unselectedItemColor: Colors.grey,
             showSelectedLabels: true,
             showUnselectedLabels: true,

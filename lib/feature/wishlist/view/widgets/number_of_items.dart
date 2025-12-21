@@ -21,7 +21,7 @@ class NumberOfItems extends StatelessWidget {
           width: MediaQuery.of(context).size.width,
           height: 100,
           decoration: BoxDecoration(
-            color: Color(0xffF3F3F3),
+            color: Theme.of(context).cardColor.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
@@ -35,7 +35,10 @@ class NumberOfItems extends StatelessWidget {
                       '$itemCount Item${itemCount != 1 ? 's' : ''}',
                       style: AppTextStyle.h2,
                     ),
-                    Text('in your WishList'),
+                    Text(
+                      'in your WishList',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ],
                 ),
               ),
@@ -73,7 +76,7 @@ class NumberOfItems extends StatelessWidget {
                           );
                         }
                       },
-                      color: Color(0xFFff5722),
+                      color: const Color(0xFFff5722),
                       textColor: Colors.white,
                       borderRadius: 30,
                     ),

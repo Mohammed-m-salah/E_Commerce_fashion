@@ -4,6 +4,8 @@ import 'package:e_commerce_fullapp/feature/cart/data/cart_item_model.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class CartItemWidget extends StatelessWidget {
   final CartItem cartItem;
@@ -26,20 +28,25 @@ class CartItemWidget extends StatelessWidget {
             height: 100,
             width: 100,
             decoration: BoxDecoration(
-              color: Color(0xffF4F5F4),
+              color: const Color(0xffF4F5F4),
               borderRadius: BorderRadius.circular(10),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: cartItem.product.imageUrl.isNotEmpty
-                  ? Image.network(
-                      cartItem.product.imageUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: cartItem.product.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.image_not_supported, color: Colors.grey);
-                      },
+                      width: double.infinity,
+                      height: double.infinity,
+                      placeholder: (context, url) => Bone.square(size: 100),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.image_not_supported,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
                     )
-                  : Icon(Icons.image, color: Colors.grey),
+                  : const Icon(Icons.image, size: 40, color: Colors.grey),
             ),
           ),
           Gap(10),
@@ -51,7 +58,7 @@ class CartItemWidget extends StatelessWidget {
               children: [
                 Text(
                   cartItem.product.name,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -77,7 +84,7 @@ class CartItemWidget extends StatelessWidget {
                 height: 40,
                 width: 140,
                 decoration: BoxDecoration(
-                  color: Color(0xffFFEEEA),
+                  color: const Color(0xffFFEEEA),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -87,7 +94,7 @@ class CartItemWidget extends StatelessWidget {
                       onPressed: () {
                         cartController.decrementQuantity(cartItem.product.id);
                       },
-                      icon: Icon(Icons.remove, color: Color(0xffCEA5A0)),
+                      icon: const Icon(Icons.remove, color: Color(0xffCEA5A0)),
                     ),
                     Obx(() {
                       // Find current quantity (in case it was updated)
@@ -96,14 +103,14 @@ class CartItemWidget extends StatelessWidget {
 
                       return Text(
                         '$quantity',
-                        style: TextStyle(color: Color(0xffCEA5A0)),
+                        style: const TextStyle(color: Color(0xffCEA5A0)),
                       );
                     }),
                     IconButton(
                       onPressed: () {
                         cartController.incrementQuantity(cartItem.product.id);
                       },
-                      icon: Icon(Icons.add, color: Color(0xffCEA5A0)),
+                      icon: const Icon(Icons.add, color: Color(0xffCEA5A0)),
                     ),
                   ],
                 ),

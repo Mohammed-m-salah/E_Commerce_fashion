@@ -28,8 +28,8 @@ class _SettingsViewState extends State<SettingsView> {
                     onTap: () {
                       Navigator.pop(context);
                     },
-                    child: Icon(Icons.arrow_back_ios)),
-                Gap(30),
+                    child: const Icon(Icons.arrow_back_ios)),
+                const Gap(30),
                 Text(
                   'Settings',
                   style: AppTextStyle.h3,
@@ -54,20 +54,20 @@ class _SettingsViewState extends State<SettingsView> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.dark_mode,
                   color: Color(0xFFff5722),
                   size: 30,
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Text(
                   'Dark Mode',
                   style: AppTextStyle.buttonLarge,
                 ),
-                Spacer(),
+                const Spacer(),
                 Switch(
                   value: darkMode,
-                  activeColor: Color(0xFFff5722),
+                  activeColor: const Color(0xFFff5722),
                   onChanged: (value) {
                     setState(() {
                       darkMode = value;
@@ -113,12 +113,12 @@ class _SettingsViewState extends State<SettingsView> {
                     ],
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 Column(
                   children: [
                     Switch(
                       value: darkMode,
-                      activeColor: Color(0xFFff5722),
+                      activeColor: const Color(0xFFff5722),
                       onChanged: (value) {
                         setState(() {
                           darkMode = value;
@@ -154,12 +154,12 @@ class _SettingsViewState extends State<SettingsView> {
                     ],
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 Column(
                   children: [
                     Switch(
                       value: darkMode,
-                      activeColor: Color(0xFFff5722),
+                      activeColor: const Color(0xFFff5722),
                       onChanged: (value) {
                         setState(() {
                           darkMode = value;
@@ -187,7 +187,7 @@ class _SettingsViewState extends State<SettingsView> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                Column(
+                const Column(
                   children: [
                     Icon(
                       Icons.privacy_tip_outlined,
@@ -195,7 +195,7 @@ class _SettingsViewState extends State<SettingsView> {
                     ),
                   ],
                 ),
-                Gap(10),
+                const Gap(10),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
@@ -212,7 +212,7 @@ class _SettingsViewState extends State<SettingsView> {
                     ],
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Column(
@@ -228,7 +228,7 @@ class _SettingsViewState extends State<SettingsView> {
                             ),
                           );
                         },
-                        child: Icon(Icons.arrow_forward_ios),
+                        child: const Icon(Icons.arrow_forward_ios),
                       ),
                     ],
                   ),
@@ -240,7 +240,7 @@ class _SettingsViewState extends State<SettingsView> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                Column(
+                const Column(
                   children: [
                     Icon(
                       Icons.file_open_outlined,
@@ -248,7 +248,7 @@ class _SettingsViewState extends State<SettingsView> {
                     ),
                   ],
                 ),
-                Gap(10),
+                const Gap(10),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
@@ -265,7 +265,7 @@ class _SettingsViewState extends State<SettingsView> {
                     ],
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 Padding(
                   padding: const EdgeInsets.only(right: 10),
                   child: Column(
@@ -281,7 +281,7 @@ class _SettingsViewState extends State<SettingsView> {
                               ),
                             );
                           },
-                          child: Icon(Icons.arrow_forward_ios)),
+                          child: const Icon(Icons.arrow_forward_ios)),
                     ],
                   ),
                 ),
@@ -304,7 +304,7 @@ class _SettingsViewState extends State<SettingsView> {
             padding: const EdgeInsets.all(8.0),
             child: Row(
               children: [
-                Column(
+                const Column(
                   children: [
                     Icon(
                       Icons.info_outline,
@@ -312,7 +312,7 @@ class _SettingsViewState extends State<SettingsView> {
                     ),
                   ],
                 ),
-                Gap(10),
+                const Gap(10),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
@@ -329,9 +329,9 @@ class _SettingsViewState extends State<SettingsView> {
                     ],
                   ),
                 ),
-                Spacer(),
-                Padding(
-                  padding: const EdgeInsets.only(right: 10),
+                const Spacer(),
+                const Padding(
+                  padding: EdgeInsets.only(right: 10),
                   child: Column(
                     children: [
                       Icon(Icons.arrow_forward_ios),

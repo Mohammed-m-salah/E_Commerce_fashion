@@ -1,9 +1,13 @@
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:e_commerce_fullapp/core/config/supabase_config.dart';
+import 'package:e_commerce_fullapp/core/services/stripe_payment_service.dart';
 import 'package:e_commerce_fullapp/core/theme/app_theme.dart';
 import 'package:e_commerce_fullapp/core/theme/them_controller.dart';
 import 'package:e_commerce_fullapp/feature/auth/view/sign_in_view.dart';
 import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
+import 'package:e_commerce_fullapp/feature/check_out/data/address_controller.dart';
+import 'package:e_commerce_fullapp/feature/check_out/data/checkout_controller.dart';
+import 'package:e_commerce_fullapp/feature/check_out/data/payment_method_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
 import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
 import 'package:e_commerce_fullapp/root.dart';
@@ -33,11 +37,17 @@ void main() async {
       ),
     );
 
+    // Initialize Stripe
+    await StripePaymentService.instance.initialize();
+
     await GetStorage.init();
     Get.put(ThemeController());
     Get.put(ProductController());
     Get.put(WishlistController());
     Get.put(CartController());
+    Get.put(AddressController()); // تهيئة متحكم العناوين
+    Get.put(PaymentMethodController()); // تهيئة متحكم طرق الدفع
+    Get.put(CheckoutController()); // تهيئة متحكم الدفع (must be after AddressController & PaymentMethodController)
     runApp(const MyApp());
   } catch (e) {
     print('❌ Initialization Error: $e');
@@ -88,7 +98,8 @@ class _MyAppState extends State<MyApp> {
     super.initState();
 
     // Listen to auth state changes for email verification and deep links
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    _authSubscription =
+        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       final event = data.event;
       final session = data.session;
 
@@ -140,7 +151,9 @@ class _MyAppState extends State<MyApp> {
     final themeController = Get.find<ThemeController>();
 
     return ThemeProvider(
-      initTheme: themeController.isDarkMode ? AppThemes.darkTheme : AppThemes.lightTheme,
+      initTheme: themeController.isDarkMode
+          ? AppThemes.darkTheme
+          : AppThemes.lightTheme,
       duration: const Duration(milliseconds: 500),
       builder: (context, theme) {
         return GetMaterialApp(

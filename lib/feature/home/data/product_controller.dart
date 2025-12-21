@@ -8,8 +8,17 @@ class ProductController extends GetxController {
 
   var isLoading = false.obs;
   var products = <Product>[].obs;
-  var filteredProducts = <Product>[].obs;
+  var filteredProducts = <Product>[].obs; // For home page (category filter only)
+  var shoppingPageProducts = <Product>[].obs; // For shopping page (advanced filters)
   var categories = <String>['All'].obs;
+
+  // Filter options (for shopping page only)
+  var selectedCategory = 'All'.obs;
+  var minPrice = 0.0.obs;
+  var maxPrice = 1000.0.obs;
+  var minRating = 0.0.obs;
+  var showInStockOnly = false.obs;
+  var searchQuery = ''.obs;
 
   @override
   void onInit() {
@@ -33,6 +42,13 @@ class ProductController extends GetxController {
           .toList();
 
       filteredProducts.value = products;
+      shoppingPageProducts.value = products; // Initialize shopping page products
+
+      // Initialize max price based on actual products
+      if (products.isNotEmpty) {
+        final actualMaxPrice = getMaxPrice();
+        maxPrice.value = actualMaxPrice;
+      }
 
       print('✅ Loaded ${products.length} products');
     } catch (e) {
@@ -72,7 +88,7 @@ class ProductController extends GetxController {
     }
   }
 
-  // Filter products by category
+  // Filter products by category (for home page only)
   void filterByCategory(String category) {
     if (category.isEmpty || category == 'All') {
       filteredProducts.value = products;
@@ -83,17 +99,76 @@ class ProductController extends GetxController {
     }
   }
 
-  // Search products
+  // Search products in shopping page
+  void searchInShoppingPage(String query) {
+    searchQuery.value = query;
+    applyShoppingFilters();
+  }
+
+  // Search products (deprecated - use searchInShoppingPage instead)
   void searchProducts(String query) {
-    if (query.isEmpty) {
-      filteredProducts.value = products;
-    } else {
-      filteredProducts.value = products
-          .where((product) =>
-              product.name.toLowerCase().contains(query.toLowerCase()) ||
-              product.description.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-    }
+    searchInShoppingPage(query);
+  }
+
+  // Advanced filter with multiple criteria (for shopping page only)
+  void applyFilters() {
+    applyShoppingFilters();
+  }
+
+  // Apply all filters to shopping page
+  void applyShoppingFilters() {
+    shoppingPageProducts.value = products.where((product) {
+      // Search filter
+      if (searchQuery.value.isNotEmpty) {
+        final query = searchQuery.value.toLowerCase();
+        final matchesSearch = product.name.toLowerCase().contains(query) ||
+            product.description.toLowerCase().contains(query);
+        if (!matchesSearch) return false;
+      }
+
+      // Category filter
+      if (selectedCategory.value != 'All' &&
+          product.category != selectedCategory.value) {
+        return false;
+      }
+
+      // Price range filter
+      if (product.price < minPrice.value || product.price > maxPrice.value) {
+        return false;
+      }
+
+      // Rating filter
+      if (product.rating < minRating.value) {
+        return false;
+      }
+
+      // Stock filter
+      if (showInStockOnly.value && product.stock <= 0) {
+        return false;
+      }
+
+      return true;
+    }).toList();
+
+    print('✅ Filtered shopping page to ${shoppingPageProducts.length} products');
+  }
+
+  // Reset all filters
+  void resetFilters() {
+    selectedCategory.value = 'All';
+    minPrice.value = 0.0;
+    maxPrice.value = getMaxPrice();
+    minRating.value = 0.0;
+    showInStockOnly.value = false;
+    searchQuery.value = '';
+    shoppingPageProducts.value = products;
+  }
+
+  // Get max price from products for slider
+  double getMaxPrice() {
+    if (products.isEmpty) return 1000.0;
+    final max = products.map((p) => p.price).reduce((a, b) => a > b ? a : b);
+    return max + 10; // Add small buffer
   }
 
   // Get product by ID

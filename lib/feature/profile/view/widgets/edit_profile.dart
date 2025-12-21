@@ -89,14 +89,16 @@ class _EditProfileState extends State<EditProfile> {
                               onTap: _showImagePickerOptions,
                               child: CircleAvatar(
                                 radius: 50,
-                                backgroundColor: Colors.grey.shade300,
+                                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
                                 backgroundImage: backgroundImage,
                                 child: controller.profileImage == null &&
                                         controller.userAvatarUrl.value.isEmpty
-                                    ? const Icon(
+                                    ? Icon(
                                         Icons.camera_alt_outlined,
                                         size: 30,
-                                        color: Colors.white,
+                                        color: Theme.of(context).iconTheme.color,
                                       )
                                     : null,
                               ),
@@ -160,7 +162,11 @@ class _EditProfileState extends State<EditProfile> {
                             ),
                             child: const Text(
                               'Save Changes',
-                              style: TextStyle(fontSize: 16, color: Colors.white),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),

@@ -51,7 +51,9 @@ class _CategoriesHomeState extends State<CategoriesHome> {
                       decoration: BoxDecoration(
                         color: selected
                             ? const Color(0xFFff5722) // active background
-                            : Color(0xffF4F4F4), // inactive background
+                            : (Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade800
+                                : const Color(0xffF4F4F4)), // inactive background
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: selected
@@ -73,7 +75,11 @@ class _CategoriesHomeState extends State<CategoriesHome> {
                           categories[index],
                           style: AppTextStyle.withColor(
                             AppTextStyle.bodymedium,
-                            selected ? Colors.white : Colors.black,
+                            selected
+                                ? Colors.white
+                                : (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black),
                           ),
                         ),
                       ),

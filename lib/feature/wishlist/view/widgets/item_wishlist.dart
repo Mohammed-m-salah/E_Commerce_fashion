@@ -5,6 +5,8 @@ import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dar
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 
 class ItemWishlist extends StatelessWidget {
   final Product product;
@@ -16,10 +18,12 @@ class ItemWishlist extends StatelessWidget {
     final wishlistController = Get.find<WishlistController>();
 
     return Container(
-      padding: EdgeInsets.all(12),
-      margin: EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade500,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.grey.shade200,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -29,20 +33,25 @@ class ItemWishlist extends StatelessWidget {
             height: 100,
             width: 100,
             decoration: BoxDecoration(
-              color: Color(0xffF4F5F4),
+              color: const Color(0xffF4F5F4),
               borderRadius: BorderRadius.circular(10),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(10),
               child: product.imageUrl.isNotEmpty
-                  ? Image.network(
-                      product.imageUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: product.imageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(Icons.image_not_supported, color: Colors.grey);
-                      },
+                      width: double.infinity,
+                      height: double.infinity,
+                      placeholder: (context, url) => Bone.square(size: 100),
+                      errorWidget: (context, url, error) => const Icon(
+                        Icons.image_not_supported,
+                        size: 40,
+                        color: Colors.grey,
+                      ),
                     )
-                  : Icon(Icons.image, color: Colors.grey),
+                  : const Icon(Icons.image, size: 40, color: Colors.grey),
             ),
           ),
           Gap(10),
@@ -54,17 +63,14 @@ class ItemWishlist extends StatelessWidget {
               children: [
                 Text(
                   product.name,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.bodyLarge,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Gap(10),
                 Text(
                   '\$${product.price.toStringAsFixed(2)}',
-                  style: AppTextStyle.buttonmedium.copyWith(color: Colors.white),
+                  style: AppTextStyle.buttonmedium,
                 ),
               ],
             ),
@@ -79,7 +85,7 @@ class ItemWishlist extends StatelessWidget {
                   final cartController = Get.find<CartController>();
                   cartController.moveFromWishlistToCart(product);
                 },
-                icon: Icon(
+                icon: const Icon(
                   Icons.shopping_cart_outlined,
                   color: Color(0xFFff5722),
                 ),
@@ -89,7 +95,7 @@ class ItemWishlist extends StatelessWidget {
                 onPressed: () {
                   wishlistController.removeFromWishlist(product.id);
                 },
-                icon: Icon(Icons.delete_outline, color: Colors.white),
+                icon: Icon(Icons.delete_outline, color: Theme.of(context).iconTheme.color),
               ),
             ],
           ),

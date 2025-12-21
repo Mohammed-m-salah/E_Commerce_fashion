@@ -28,12 +28,15 @@ class CartView extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.shopping_cart_outlined,
-                          size: 80, color: Colors.grey),
-                      SizedBox(height: 16),
+                      Icon(
+                        Icons.shopping_cart_outlined,
+                        size: 80,
+                        color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: 16),
                       Text(
                         'Your cart is empty',
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
                   ),
@@ -41,7 +44,7 @@ class CartView extends StatelessWidget {
               }
 
               return ListView.builder(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 itemCount: cartController.cartItems.length,
                 itemBuilder: (context, index) {
                   final cartItem = cartController.cartItems[index];
@@ -60,21 +63,26 @@ class CartView extends StatelessWidget {
 
         return Container(
           height: 150,
-          padding: EdgeInsets.all(12),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey.shade300,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey.shade900
+                : Colors.grey.shade200,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Text('Total ($itemCount item${itemCount != 1 ? 's' : ''})'),
-                  Spacer(),
+                  Text(
+                    'Total ($itemCount item${itemCount != 1 ? 's' : ''})',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const Spacer(),
                   Text(
                     '\$${total.toStringAsFixed(2)}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
                       color: Color(0xFFff5722),
@@ -96,12 +104,12 @@ class CartView extends StatelessWidget {
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFFff5722),
+                    backgroundColor: const Color(0xFFff5722),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text('Proceed To Checkout'),
+                  child: const Text('Proceed To Checkout'),
                 ),
               ),
             ],

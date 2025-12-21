@@ -2,7 +2,13 @@
   "permissions": {
     "allow": [
       "Bash(flutter run:*)",
-      "Bash(flutter pub get:*)"
+      "Bash(flutter pub get:*)",
+      "Bash(timeout /t 5 /nobreak)",
+      "Bash(timeout:*)",
+      "Bash(exit 0)",
+      "Bash(ping:*)",
+      "Bash(flutter analyze:*)",
+      "Bash(flutter clean:*)"
     ],
     "deny": [],
     "ask": []

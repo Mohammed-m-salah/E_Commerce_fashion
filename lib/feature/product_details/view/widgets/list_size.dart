@@ -33,19 +33,27 @@ class _ListSizeState extends State<ListSize> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? const Color(0xFFff5722)
-                      : Colors.grey.shade200,
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey.shade800
+                          : Colors.grey.shade200),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected
                         ? const Color(0xFFff5722)
-                        : Colors.grey.shade400,
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade700
+                            : Colors.grey.shade400),
                   ),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   sizes[index],
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black87,
+                    color: isSelected
+                        ? Colors.white
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.black87),
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),

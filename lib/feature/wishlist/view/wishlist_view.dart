@@ -28,11 +28,15 @@ class WishListView extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.favorite_border, size: 80, color: Colors.grey),
-                      SizedBox(height: 16),
+                      Icon(
+                        Icons.favorite_border,
+                        size: 80,
+                        color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: 16),
                       Text(
                         'Your wishlist is empty',
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
                   ),
@@ -40,7 +44,7 @@ class WishListView extends StatelessWidget {
               }
 
               return ListView.builder(
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 itemCount: wishlistController.wishlistItems.length,
                 itemBuilder: (context, index) {
                   final product = wishlistController.wishlistItems[index];

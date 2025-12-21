@@ -46,6 +46,9 @@ dependencies:
   skeletonizer: ^1.4.2
   cached_network_image: ^3.4.1
   animated_theme_switcher: ^2.0.10
+  intl: ^0.19.0
+  flutter_stripe: ^11.5.0
+  http: ^1.2.2
 
 
 dev_dependencies:

@@ -34,7 +34,9 @@ class _UserDataState extends State<UserData> {
       height: 260,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
-        color: Colors.grey.shade300,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.grey.shade200,
       ),
       child: Obx(
         () => Column(
