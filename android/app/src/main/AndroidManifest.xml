@@ -2,6 +2,14 @@
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Local Notifications Permissions -->
+    <!-- إذن الإشعارات - مطلوب لـ Android 13 (API 33) وأعلى -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- إذن الاهتزاز - للإشعارات مع اهتزاز -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <!-- إذن التشغيل عند الإقلاع - للإشعارات المجدولة -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
     <application
         android:label="e_commerce_fullapp"
         android:name="${applicationName}"

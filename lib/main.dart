@@ -1,5 +1,5 @@
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:e_commerce_fullapp/core/config/supabase_config.dart';
+import 'package:e_commerce_fullapp/core/services/local_notification_service.dart';
 import 'package:e_commerce_fullapp/core/services/stripe_payment_service.dart';
 import 'package:e_commerce_fullapp/core/theme/app_theme.dart';
 import 'package:e_commerce_fullapp/core/theme/them_controller.dart';
@@ -9,8 +9,11 @@ import 'package:e_commerce_fullapp/feature/check_out/data/address_controller.dar
 import 'package:e_commerce_fullapp/feature/check_out/data/checkout_controller.dart';
 import 'package:e_commerce_fullapp/feature/check_out/data/payment_method_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
+import 'package:e_commerce_fullapp/feature/notification/data/notification_controller.dart';
 import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
+import 'package:e_commerce_fullapp/firebase_options.dart';
 import 'package:e_commerce_fullapp/root.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
@@ -22,6 +25,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
+    // Initialize Local Notifications
+    // تهيئة خدمة الإشعارات المحلية
+    await LocalNotificationService().initialize();
     // Load environment variables
     await dotenv.load(fileName: ".env");
 
@@ -45,9 +51,11 @@ void main() async {
     Get.put(ProductController());
     Get.put(WishlistController());
     Get.put(CartController());
+    Get.put(NotificationController()); // تهيئة متحكم الإشعارات
     Get.put(AddressController()); // تهيئة متحكم العناوين
     Get.put(PaymentMethodController()); // تهيئة متحكم طرق الدفع
-    Get.put(CheckoutController()); // تهيئة متحكم الدفع (must be after AddressController & PaymentMethodController)
+    Get.put(
+        CheckoutController()); // تهيئة متحكم الدفع (must be after AddressController & PaymentMethodController)
     runApp(const MyApp());
   } catch (e) {
     print('❌ Initialization Error: $e');
@@ -150,28 +158,21 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final themeController = Get.find<ThemeController>();
 
-    return ThemeProvider(
-      initTheme: themeController.isDarkMode
-          ? AppThemes.darkTheme
-          : AppThemes.lightTheme,
-      duration: const Duration(milliseconds: 500),
-      builder: (context, theme) {
+    return GetBuilder<ThemeController>(
+      builder: (_) {
         return GetMaterialApp(
           title: 'E-Commerce App',
           debugShowCheckedModeBanner: false,
-          theme: theme,
+          theme: AppThemes.lightTheme,
+          darkTheme: AppThemes.darkTheme,
+          themeMode:
+              themeController.isDarkMode ? ThemeMode.dark : ThemeMode.light,
           defaultTransition: Transition.fade,
           initialRoute: _getInitialRoute(),
           getPages: [
             GetPage(name: '/signin', page: () => const Sigin_view()),
             GetPage(name: '/home', page: () => const Root()),
           ],
-          // Global error handler
-          builder: (context, widget) {
-            return ThemeSwitchingArea(
-              child: widget ?? const SizedBox.shrink(),
-            );
-          },
         );
       },
     );

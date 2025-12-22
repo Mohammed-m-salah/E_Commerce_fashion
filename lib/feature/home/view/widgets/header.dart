@@ -1,5 +1,3 @@
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
-import 'package:e_commerce_fullapp/core/theme/app_theme.dart';
 import 'package:e_commerce_fullapp/core/theme/them_controller.dart';
 import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
 import 'package:flutter/material.dart';
@@ -135,24 +133,15 @@ class Homeheader extends StatelessWidget {
           ),
           GetBuilder<ThemeController>(
             builder: (themeController) {
-              return ThemeSwitcher(
-                clipper: const ThemeSwitcherCircleClipper(),
-                builder: (context) {
-                  return IconButton(
-                    onPressed: () {
-                      final newTheme = themeController.isDarkMode
-                          ? AppThemes.lightTheme
-                          : AppThemes.darkTheme;
-                      ThemeSwitcher.of(context).changeTheme(theme: newTheme);
-                      themeController.toggelTheme();
-                    },
-                    icon: Icon(
-                      themeController.isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                      size: 28,
-                      color: Colors.grey.shade600,
-                    ),
-                  );
+              return IconButton(
+                onPressed: () {
+                  themeController.toggelTheme();
                 },
+                icon: Icon(
+                  themeController.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                  size: 28,
+                  color: Colors.grey.shade600,
+                ),
               );
             },
           ),

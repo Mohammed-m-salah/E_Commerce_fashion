@@ -8,7 +8,8 @@
       "Bash(exit 0)",
       "Bash(ping:*)",
       "Bash(flutter analyze:*)",
-      "Bash(flutter clean:*)"
+      "Bash(flutter clean:*)",
+      "Bash(flutter devices:*)"
     ],
     "deny": [],
     "ask": []

@@ -108,9 +108,9 @@ class AppThemes {
         seedColor: primarycolor,
         primary: primarycolor,
         brightness: Brightness.dark,
-        surface: Colors.black,
+        surface: Color(0xff1E1E1E),
       ),
-      cardColor: Colors.black,
+      cardColor: Color(0xff1E1E1E),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Color(0xff1E1E1E),
@@ -120,7 +120,7 @@ class AppThemes {
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-          backgroundColor: Colors.black,
+          backgroundColor: Color(0xff1E1E1E),
           selectedItemColor: primarycolor,
           unselectedItemColor: Colors.grey));
 }

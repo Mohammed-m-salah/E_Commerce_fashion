@@ -8,6 +8,8 @@ class HeaderShoppingAddress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
@@ -17,19 +19,27 @@ class HeaderShoppingAddress extends StatelessWidget {
             onTap: () {
               Navigator.pop(context);
             },
-            child: const Icon(Icons.arrow_back),
+            child: Icon(
+              Icons.arrow_back,
+              color: theme.textTheme.bodyLarge?.color,
+            ),
           ),
           const Gap(30),
           Text(
             'Shopping Address',
-            style: AppTextStyle.h3,
+            style: AppTextStyle.h3.copyWith(
+              color: theme.textTheme.bodyLarge?.color,
+            ),
           ),
           const Spacer(),
           GestureDetector(
             onTap: () {
               AddAdressBottomSheet(context);
             },
-            child: const Icon(Icons.add_circle_outline_sharp),
+            child: Icon(
+              Icons.add_circle_outline_sharp,
+              color: theme.textTheme.bodyLarge?.color,
+            ),
           ),
         ],
       ),

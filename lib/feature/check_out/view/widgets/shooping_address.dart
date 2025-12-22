@@ -78,7 +78,9 @@ class AddressCard extends StatelessWidget {
                         selectedAddress.fullName,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade700,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade700,
                         ),
                       ),
                     const Gap(4),
@@ -88,7 +90,9 @@ class AddressCard extends StatelessWidget {
                         selectedAddress.phoneNumber,
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey.shade600,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
                         ),
                       ),
                     const Gap(4),
@@ -97,7 +101,9 @@ class AddressCard extends StatelessWidget {
                       selectedAddress?.fullAddress ?? 'Tap to add shipping address',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,

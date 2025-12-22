@@ -1,9 +1,11 @@
+import 'package:e_commerce_fullapp/core/theme/them_controller.dart';
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
 import 'package:e_commerce_fullapp/feature/help_center/view/help_center.dart';
 import 'package:e_commerce_fullapp/feature/my_order/view/my_order_view.dart';
 import 'package:e_commerce_fullapp/feature/shopping_address/view/shopping_address_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 
 class BodyProfile extends StatelessWidget {
   const BodyProfile({super.key});
@@ -39,6 +41,37 @@ class BodyProfile extends StatelessWidget {
               Navigator.push(context, MaterialPageRoute(builder: (_) {
                 return HelpCenter();
               }));
+            },
+          ),
+          // Dark Mode Toggle
+          GetBuilder<ThemeController>(
+            builder: (controller) {
+              return Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  children: [
+                    Icon(
+                      controller.isDarkMode
+                          ? Icons.dark_mode
+                          : Icons.light_mode,
+                      color: const Color(0xFFff5722),
+                    ),
+                    const Gap(20),
+                    Text(
+                      'Dark Mode',
+                      style: AppTextStyle.bodylarge,
+                    ),
+                    const Spacer(),
+                    Switch(
+                      value: controller.isDarkMode,
+                      onChanged: (value) {
+                        controller.toggelTheme();
+                      },
+                      activeColor: const Color(0xFFff5722),
+                    ),
+                  ],
+                ),
+              );
             },
           ),
           ProfileItem(

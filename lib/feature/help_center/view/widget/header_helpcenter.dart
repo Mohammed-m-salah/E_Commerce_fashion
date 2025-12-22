@@ -7,20 +7,28 @@ class HeaderHelpCenter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
-          Gap(10),
+          const Gap(10),
           GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
-              child: Icon(Icons.arrow_back)),
-          Gap(30),
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: Icon(
+              Icons.arrow_back,
+              color: theme.textTheme.bodyLarge?.color,
+            ),
+          ),
+          const Gap(30),
           Text(
             'Help Center',
-            style: AppTextStyle.h3,
+            style: AppTextStyle.h3.copyWith(
+              color: theme.textTheme.bodyLarge?.color,
+            ),
           )
         ],
       ),

@@ -1,3 +1,4 @@
+import 'package:e_commerce_fullapp/core/services/local_notification_service.dart';
 import 'package:e_commerce_fullapp/core/services/stripe_payment_service.dart';
 import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
 import 'package:e_commerce_fullapp/feature/check_out/data/address_controller.dart';
@@ -211,7 +212,14 @@ class CheckoutController extends GetxController {
       // مسح السلة بعد إتمام الطلب
       cartController.clearCart();
 
-      // إظهار رسالة نجاح
+      // ========== إظهار إشعار محلي ==========
+      // هذا الإشعار يظهر حتى لو التطبيق في الخلفية
+      await LocalNotificationService().showOrderConfirmedNotification(
+        orderId: orderId,
+        totalAmount: total,
+      );
+
+      // إظهار رسالة نجاح داخل التطبيق
       Get.snackbar(
         'تم الدفع بنجاح',
         'تم إنشاء الطلب رقم: $orderId',
@@ -286,7 +294,14 @@ class CheckoutController extends GetxController {
       // مسح السلة بعد إتمام الطلب
       cartController.clearCart();
 
-      // إظهار رسالة نجاح
+      // ========== إظهار إشعار محلي ==========
+      // هذا الإشعار يظهر حتى لو التطبيق في الخلفية
+      await LocalNotificationService().showOrderConfirmedNotification(
+        orderId: orderId,
+        totalAmount: total,
+      );
+
+      // إظهار رسالة نجاح داخل التطبيق
       Get.snackbar(
         'تم إنشاء الطلب بنجاح',
         'رقم الطلب: $orderId',

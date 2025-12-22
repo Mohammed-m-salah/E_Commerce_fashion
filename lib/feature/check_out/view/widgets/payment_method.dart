@@ -56,7 +56,9 @@ class PaymentCard extends StatelessWidget {
                             'Expires: ${selectedPaymentMethod.expiryDate}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
                             ),
                           ),
                           const Gap(8),

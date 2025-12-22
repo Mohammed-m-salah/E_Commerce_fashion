@@ -6,7 +6,7 @@ import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/categoris.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/header.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/newcollection.dart';
-import 'package:e_commerce_fullapp/feature/home/view/widgets/nofification_view.dart';
+import 'package:e_commerce_fullapp/feature/home/view/widgets/notification_view.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/product_grid.dart';
 import 'package:e_commerce_fullapp/shared/custome_searchfield.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +36,9 @@ class _HomeViewState extends State<HomeView> {
     final user = supabase.auth.currentUser;
     if (user != null) {
       setState(() {
-        userName = user.userMetadata?['full_name'] ?? user.email?.split('@')[0] ?? 'User';
+        userName = user.userMetadata?['full_name'] ??
+            user.email?.split('@')[0] ??
+            'User';
         userAvatar = user.userMetadata?['avatar_url'] ?? '';
       });
     }
@@ -69,7 +71,9 @@ class _HomeViewState extends State<HomeView> {
                   themeController.toggelTheme();
                 },
                 userName: userName,
-                avatarAssetPath: userAvatar.isNotEmpty ? userAvatar : 'assets/images/avatar.jpg',
+                avatarAssetPath: userAvatar.isNotEmpty
+                    ? userAvatar
+                    : 'assets/images/avatar.jpg',
               ),
               CustomSearchField(
                 onChanged: (value) {

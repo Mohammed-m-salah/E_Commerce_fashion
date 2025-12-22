@@ -11,7 +11,8 @@ class Shoppingview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final productController = Get.find<ProductController>();
+    // Ensure ProductController is initialized
+    Get.find<ProductController>();
 
     return Scaffold(
       body: SingleChildScrollView(

@@ -11,26 +11,35 @@ class PopularQuestions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       width: MediaQuery.of(context).size.width * .95,
       height: 70,
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
-          Gap(5),
-          Icon(
+          const Gap(5),
+          const Icon(
             Icons.fire_truck_outlined,
             color: Colors.red,
             size: 40,
           ),
-          Gap(30),
-          Text(text),
-          Spacer(),
+          const Gap(30),
+          Text(
+            text,
+            style: TextStyle(
+              color: theme.textTheme.bodyLarge?.color,
+            ),
+          ),
+          const Spacer(),
           Icon(
             Icons.arrow_forward_ios,
+            color: theme.textTheme.bodyLarge?.color,
           ),
         ],
       ),
