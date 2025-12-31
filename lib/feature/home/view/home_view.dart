@@ -84,8 +84,8 @@ class _HomeViewState extends State<HomeView> {
               const Gap(5),
               const CategoriesHome(),
               const Gap(16),
-              const newcollection(),
-              const Gap(2),
+              const NewCollection(),
+              const Gap(16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: Row(
