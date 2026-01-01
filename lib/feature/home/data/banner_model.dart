@@ -8,7 +8,7 @@ class BannerModel {
   final String? linkType;
   final String? linkId;
   final int position;
-  final String status; // active, inactive, scheduled
+  final String status;
   final DateTime? startDate;
   final DateTime? endDate;
   final int views;
@@ -16,7 +16,6 @@ class BannerModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  // ألوان التدرج (يمكن تخصيصها حسب الـ position أو linkType)
   final Color gradientStart;
   final Color gradientEnd;
 
@@ -39,7 +38,6 @@ class BannerModel {
     this.gradientEnd = const Color(0xFFFF8A65),
   });
 
-  /// تحويل JSON إلى BannerModel
   factory BannerModel.fromJson(Map<String, dynamic> json) {
     final position = json['position'] ?? 0;
     final colors = _getGradientColors(position);
@@ -73,7 +71,6 @@ class BannerModel {
     );
   }
 
-  /// تحويل BannerModel إلى JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -91,20 +88,18 @@ class BannerModel {
     };
   }
 
-  /// ألوان تدرج متنوعة حسب الموضع
   static (Color, Color) _getGradientColors(int position) {
     final gradients = [
-      (const Color(0xFFFF5722), const Color(0xFFFF8A65)), // برتقالي
-      (const Color(0xFF2196F3), const Color(0xFF64B5F6)), // أزرق
-      (const Color(0xFF9C27B0), const Color(0xFFBA68C8)), // بنفسجي
-      (const Color(0xFF4CAF50), const Color(0xFF81C784)), // أخضر
-      (const Color(0xFFE91E63), const Color(0xFFF48FB1)), // وردي
-      (const Color(0xFF00BCD4), const Color(0xFF4DD0E1)), // سماوي
+      (const Color(0xFFFF5722), const Color(0xFFFF8A65)),
+      (const Color(0xFF2196F3), const Color(0xFF64B5F6)),
+      (const Color(0xFF9C27B0), const Color(0xFFBA68C8)),
+      (const Color(0xFF4CAF50), const Color(0xFF81C784)),
+      (const Color(0xFFE91E63), const Color(0xFFF48FB1)),
+      (const Color(0xFF00BCD4), const Color(0xFF4DD0E1)),
     ];
     return gradients[position % gradients.length];
   }
 
-  /// التحقق من أن البانر نشط حالياً
   bool get isCurrentlyActive {
     if (status != 'active') return false;
 
@@ -115,7 +110,6 @@ class BannerModel {
     return true;
   }
 
-  /// بانرات افتراضية للاستخدام كـ fallback
   static List<BannerModel> get defaultBanners => [
         BannerModel(
           id: '1',

@@ -38,7 +38,8 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                 // Wishlist Toggle Button
                 Obx(() {
                   final wishlistController = Get.find<WishlistController>();
-                  final isInWishlist = wishlistController.isInWishlist(widget.product.id);
+                  final isInWishlist =
+                      wishlistController.isInWishlist(widget.product.id);
 
                   return Align(
                     alignment: Alignment.centerRight,
@@ -85,7 +86,9 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: double.infinity,
-                            placeholder: (context, url) => Bone.square(size: 300, borderRadius: BorderRadius.circular(16)),
+                            placeholder: (context, url) => Bone.square(
+                                size: 300,
+                                borderRadius: BorderRadius.circular(16)),
                             errorWidget: (context, url, error) => const Center(
                               child: Icon(
                                 Icons.image_not_supported,
@@ -255,7 +258,8 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                           if (widget.product.stock <= 0) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Sorry, this product is out of stock'),
+                                content:
+                                    Text('Sorry, this product is out of stock'),
                                 backgroundColor: Colors.red,
                                 duration: Duration(seconds: 2),
                               ),
@@ -263,7 +267,6 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                             return;
                           }
 
-                          // Add to cart if not already in cart
                           cartController.addToCart(widget.product);
 
                           // Navigate to checkout

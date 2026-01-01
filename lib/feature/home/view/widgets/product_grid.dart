@@ -183,9 +183,34 @@ class ProductGrid extends StatelessWidget {
                                         )),
                                   ),
                                 ),
-                                if (product.stock < 10 && product.stock > 0)
+                                // شارة الخصم
+                                if (product.hasDiscount)
                                   Positioned(
                                     top: 8,
+                                    left: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        '-${product.calculatedDiscount.toStringAsFixed(0)}%',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                // علامة المخزون المنخفض
+                                if (product.stock < 10 && product.stock > 0)
+                                  Positioned(
+                                    top: product.hasDiscount ? 32 : 8,
                                     left: 8,
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
@@ -249,17 +274,47 @@ class ProductGrid extends StatelessWidget {
                                   // Price row with rating
                                   Row(
                                     children: [
-                                      Text(
-                                        '\$${product.price.toStringAsFixed(2)}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          color: isDark
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
+                                      // عرض الأسعار
+                                      Expanded(
+                                        child: product.hasDiscount
+                                            ? Row(
+                                                children: [
+                                                  // السعر بعد الخصم
+                                                  Text(
+                                                    '\$${product.price.toStringAsFixed(2)}',
+                                                    style: const TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 14,
+                                                      color: Color(0xFFff5722),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  // السعر الأصلي (مشطوب)
+                                                  Text(
+                                                    '\$${product.displayOriginalPrice.toStringAsFixed(2)}',
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey.shade500,
+                                                      decoration:
+                                                          TextDecoration.lineThrough,
+                                                      decorationColor:
+                                                          Colors.grey.shade500,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            : Text(
+                                                '\$${product.price.toStringAsFixed(2)}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                ),
+                                              ),
                                       ),
-                                      const Spacer(),
+                                      // التقييم
                                       Row(
                                         children: [
                                           const Icon(

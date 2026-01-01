@@ -3,6 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
 import 'package:e_commerce_fullapp/feature/home/data/banner_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/data/banner_model.dart';
+import 'package:e_commerce_fullapp/feature/category_products/view/category_products_view.dart';
+import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
+import 'package:e_commerce_fullapp/feature/product_details/view/product_details_view.dart';
 import 'package:e_commerce_fullapp/shared/custome_button.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,8 +43,7 @@ class _NewCollectionState extends State<NewCollection> {
   void _startAutoScroll() {
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (_pageController.hasClients && _bannerController.banners.isNotEmpty) {
-        final nextPage =
-            (_currentPage + 1) % _bannerController.banners.length;
+        final nextPage = (_currentPage + 1) % _bannerController.banners.length;
         _pageController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 500),
@@ -118,7 +120,6 @@ class _NewCollectionState extends State<NewCollection> {
     );
   }
 
-  /// بناء skeleton للتحميل
   Widget _buildLoadingSkeleton() {
     return Skeletonizer(
       enabled: true,
@@ -152,7 +153,6 @@ class _NewCollectionState extends State<NewCollection> {
     );
   }
 
-  /// بناء بطاقة البانر
   Widget _buildBannerCard(BannerModel banner) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -173,7 +173,6 @@ class _NewCollectionState extends State<NewCollection> {
       ),
       child: Stack(
         children: [
-          // صورة الخلفية (إذا وجدت)
           if (banner.imageUrl.isNotEmpty)
             Positioned.fill(
               child: ClipRRect(
@@ -190,7 +189,6 @@ class _NewCollectionState extends State<NewCollection> {
                 ),
               ),
             ),
-          // تدرج فوق الصورة لضمان قراءة النص
           if (banner.imageUrl.isNotEmpty)
             Positioned.fill(
               child: Container(
@@ -207,7 +205,6 @@ class _NewCollectionState extends State<NewCollection> {
                 ),
               ),
             ),
-          // أيقونة الخلفية (إذا لم توجد صورة)
           if (banner.imageUrl.isEmpty)
             Positioned(
               right: -20,
@@ -264,9 +261,7 @@ class _NewCollectionState extends State<NewCollection> {
                       height: 48,
                       borderRadius: 12,
                       onPressed: () {
-                        // تسجيل النقرة
                         _bannerController.recordClick(banner.id);
-                        // التنقل حسب linkType و linkId
                         _handleBannerTap(banner);
                       },
                     ),
@@ -280,15 +275,12 @@ class _NewCollectionState extends State<NewCollection> {
     );
   }
 
-  /// الحصول على نص الزر حسب نوع الرابط
   String _getButtonText(String? linkType) {
     switch (linkType) {
       case 'product':
         return 'View';
       case 'category':
         return 'Explore';
-      case 'url':
-        return 'Learn More';
       case 'offer':
         return 'Get Deal';
       default:
@@ -296,8 +288,8 @@ class _NewCollectionState extends State<NewCollection> {
     }
   }
 
-  /// معالجة النقر على البانر
   void _handleBannerTap(BannerModel banner) {
+    // التحقق من وجود نوع الرابط و معرف الرابط
     if (banner.linkType == null || banner.linkId == null) {
       debugPrint('No link configured for banner: ${banner.id}');
       return;
@@ -305,33 +297,43 @@ class _NewCollectionState extends State<NewCollection> {
 
     switch (banner.linkType) {
       case 'product':
-        // التنقل إلى صفحة المنتج
-        debugPrint('Navigate to product: ${banner.linkId}');
-        // Get.to(() => ProductDetailsView(productId: banner.linkId!));
+        // جلب المنتج من ProductController باستخدام linkId
+        final productController = Get.find<ProductController>();
+        final product = productController.getProductById(banner.linkId!);
+
+        if (product != null) {
+          // الانتقال إلى صفحة تفاصيل المنتج
+          Get.to(() => ProductDetailsView(product: product));
+        } else {
+          // في حالة عدم العثور على المنتج
+          Get.snackbar(
+            'Error',
+            'Product not found',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        }
         break;
       case 'category':
-        // التنقل إلى صفحة الفئة
-        debugPrint('Navigate to category: ${banner.linkId}');
-        // Get.to(() => CategoryView(categoryId: banner.linkId!));
+        // الانتقال إلى صفحة الفئة مع عرض اسم الفئة ومنتجاتها
+        Get.to(() => CategoryProductsView(categoryId: banner.linkId!));
         break;
-      case 'url':
-        // فتح رابط خارجي
-        debugPrint('Open URL: ${banner.linkId}');
-        // launchUrl(Uri.parse(banner.linkId!));
+      case 'offer':
+        debugPrint('Navigate to offer: ${banner.linkId}');
         break;
       default:
         debugPrint('Unknown link type: ${banner.linkType}');
     }
   }
 
-  /// اختيار أيقونة مناسبة حسب عنوان البانر
   IconData _getIconForBanner(String title) {
     final lowerTitle = title.toLowerCase();
     if (lowerTitle.contains('sale') || lowerTitle.contains('discount')) {
       return Icons.local_offer_outlined;
-    } else if (lowerTitle.contains('new') || lowerTitle.contains('collection')) {
+    } else if (lowerTitle.contains('new') ||
+        lowerTitle.contains('collection')) {
       return Icons.new_releases_outlined;
-    } else if (lowerTitle.contains('shipping') || lowerTitle.contains('delivery')) {
+    } else if (lowerTitle.contains('shipping') ||
+        lowerTitle.contains('delivery')) {
       return Icons.local_shipping_outlined;
     } else if (lowerTitle.contains('flash') || lowerTitle.contains('limited')) {
       return Icons.flash_on_outlined;

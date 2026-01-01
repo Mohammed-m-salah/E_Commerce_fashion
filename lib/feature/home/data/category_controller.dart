@@ -25,11 +25,7 @@ class CategoryController extends GetxController {
     try {
       isLoading.value = true;
 
-      final response = await supabase
-          .from('categories')
-          .select()
-          .eq('is_active', true)
-          .order('sort_order', ascending: true);
+      final response = await supabase.from('categories').select();
 
       final fetchedCategories =
           (response as List).map((json) => Category.fromJson(json)).toList();

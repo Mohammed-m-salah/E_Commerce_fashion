@@ -8,6 +8,7 @@ import 'package:e_commerce_fullapp/feature/home/view/widgets/header.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/newcollection.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/notification_view.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/product_grid.dart';
+import 'package:e_commerce_fullapp/feature/offers/view/offers_view.dart';
 import 'package:e_commerce_fullapp/shared/custome_searchfield.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -86,6 +87,9 @@ class _HomeViewState extends State<HomeView> {
               const Gap(16),
               const NewCollection(),
               const Gap(16),
+              // Hot Deals Banner
+              _buildHotDealsBanner(context),
+              const Gap(16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12.0),
                 child: Row(
@@ -118,5 +122,119 @@ class _HomeViewState extends State<HomeView> {
         ),
       ),
     );
+  }
+
+  Widget _buildHotDealsBanner(BuildContext context) {
+    final productController = Get.find<ProductController>();
+
+    return Obx(() {
+      final discountCount =
+          productController.products.where((p) => p.hasDiscount).length;
+
+      if (discountCount == 0) return const SizedBox.shrink();
+
+      return GestureDetector(
+        onTap: () => Get.to(() => const OffersView()),
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.red.shade600,
+                Colors.orange.shade500,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.red.withValues(alpha: 0.3),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Fire Icon
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.local_fire_department,
+                  color: Colors.yellow,
+                  size: 28,
+                ),
+              ),
+              const Gap(16),
+
+              // Text Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hot Deals',
+                      style: AppTextStyle.h3.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      '$discountCount products with special discounts!',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Arrow & Discount Badge
+              Column(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'UP TO 70%',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red.shade600,
+                      ),
+                    ),
+                  ),
+                  const Gap(8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }

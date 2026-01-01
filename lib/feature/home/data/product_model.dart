@@ -3,6 +3,8 @@ class Product {
   final String name;
   final String description;
   final double price;
+  final double? originalPrice; // السعر الأصلي قبل الخصم
+  final double? discountPercentage; // نسبة الخصم
   final String imageUrl;
   final String category;
   final int stock;
@@ -13,11 +15,36 @@ class Product {
     required this.name,
     required this.description,
     required this.price,
+    this.originalPrice,
+    this.discountPercentage,
     required this.imageUrl,
     required this.category,
     required this.stock,
     required this.rating,
   });
+
+  /// هل يوجد خصم على المنتج؟
+  bool get hasDiscount {
+    if (discountPercentage != null && discountPercentage! > 0) return true;
+    if (originalPrice != null && originalPrice! > price) return true;
+    return false;
+  }
+
+  /// حساب نسبة الخصم
+  double get calculatedDiscount {
+    if (discountPercentage != null && discountPercentage! > 0) {
+      return discountPercentage!;
+    }
+    if (originalPrice != null && originalPrice! > price) {
+      return ((originalPrice! - price) / originalPrice! * 100);
+    }
+    return 0;
+  }
+
+  /// السعر الأصلي للعرض
+  double get displayOriginalPrice {
+    return originalPrice ?? price;
+  }
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
@@ -25,6 +52,12 @@ class Product {
       name: json['name'] as String,
       description: json['description'] as String? ?? '',
       price: (json['price'] as num).toDouble(),
+      originalPrice: json['original_price'] != null
+          ? (json['original_price'] as num).toDouble()
+          : null,
+      discountPercentage: json['discount_percentage'] != null
+          ? (json['discount_percentage'] as num).toDouble()
+          : null,
       imageUrl: json['image_url'] as String? ?? '',
       category: json['category'] as String? ?? '',
       stock: json['stock'] as int? ?? 0,
@@ -38,6 +71,8 @@ class Product {
       'name': name,
       'description': description,
       'price': price,
+      'original_price': originalPrice,
+      'discount_percentage': discountPercentage,
       'image_url': imageUrl,
       'category': category,
       'stock': stock,
