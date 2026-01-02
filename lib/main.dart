@@ -11,6 +11,7 @@ import 'package:e_commerce_fullapp/feature/check_out/data/payment_method_control
 import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/data/category_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/data/banner_controller.dart';
+import 'package:e_commerce_fullapp/feature/offers/data/offer_controller.dart';
 import 'package:e_commerce_fullapp/feature/notification/data/notification_controller.dart';
 import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
 import 'package:e_commerce_fullapp/firebase_options.dart';
@@ -53,6 +54,7 @@ void main() async {
     Get.put(ProductController());
     Get.put(CategoryController()); // تهيئة متحكم الفئات
     Get.put(BannerController()); // تهيئة متحكم البانرات
+    Get.put(OfferController()); // تهيئة متحكم العروض
     Get.put(WishlistController());
     Get.put(CartController());
     Get.put(NotificationController()); // تهيئة متحكم الإشعارات

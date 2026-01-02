@@ -380,7 +380,7 @@ class CategoryProductsView extends StatelessWidget {
                                             children: [
                                               // السعر بعد الخصم
                                               Text(
-                                                '\$${product.price.toStringAsFixed(2)}',
+                                                '\$${product.effectivePrice.toStringAsFixed(2)}',
                                                 style: const TextStyle(
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 14,
@@ -403,7 +403,7 @@ class CategoryProductsView extends StatelessWidget {
                                             ],
                                           )
                                         : Text(
-                                            '\$${product.price.toStringAsFixed(2)}',
+                                            '\$${product.effectivePrice.toStringAsFixed(2)}',
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               fontSize: 14,

@@ -68,10 +68,32 @@ class ItemWishlist extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Gap(10),
-                Text(
-                  '\$${product.price.toStringAsFixed(2)}',
-                  style: AppTextStyle.buttonmedium,
-                ),
+                if (product.hasDiscount) ...[
+                  Row(
+                    children: [
+                      Text(
+                        '\$${product.displayOriginalPrice.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '\$${product.effectivePrice.toStringAsFixed(2)}',
+                        style: AppTextStyle.buttonmedium.copyWith(
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Text(
+                    '\$${product.effectivePrice.toStringAsFixed(2)}',
+                    style: AppTextStyle.buttonmedium,
+                  ),
+                ],
               ],
             ),
           ),

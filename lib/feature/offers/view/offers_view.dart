@@ -7,6 +7,8 @@ import 'package:skeletonizer/skeletonizer.dart';
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
 import 'package:e_commerce_fullapp/feature/home/data/product_controller.dart';
 import 'package:e_commerce_fullapp/feature/home/data/product_model.dart';
+import 'package:e_commerce_fullapp/feature/offers/data/offer_controller.dart';
+import 'package:e_commerce_fullapp/feature/offers/data/offer_model.dart';
 import 'package:e_commerce_fullapp/feature/product_details/view/product_details_view.dart';
 import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
 
@@ -21,15 +23,10 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
-  // Countdown timer
-  Timer? _countdownTimer;
-  Duration _remainingTime = const Duration(hours: 23, minutes: 59, seconds: 59);
-
   @override
   void initState() {
     super.initState();
     _initAnimations();
-    _startCountdown();
   }
 
   void _initAnimations() {
@@ -43,30 +40,15 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
     );
   }
 
-  void _startCountdown() {
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingTime.inSeconds > 0) {
-        setState(() {
-          _remainingTime = _remainingTime - const Duration(seconds: 1);
-        });
-      } else {
-        // Reset to 24 hours
-        setState(() {
-          _remainingTime = const Duration(hours: 23, minutes: 59, seconds: 59);
-        });
-      }
-    });
-  }
-
   @override
   void dispose() {
     _pulseController.dispose();
-    _countdownTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final offerController = Get.find<OfferController>();
     final productController = Get.find<ProductController>();
     final wishlistController = Get.find<WishlistController>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -76,35 +58,32 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
         child: Column(
           children: [
             // Header
-            _buildHeader(context, isDark),
+            _buildHeader(context, isDark, offerController),
 
-            // Countdown Timer Banner
-            _buildCountdownBanner(isDark),
-
-            const Gap(16),
-
-            // Products Grid
+            // Content
             Expanded(
-              child: Obx(() {
-                // Filter products with discounts
-                final discountedProducts = productController.products
-                    .where((product) => product.hasDiscount)
-                    .toList();
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await offerController.refreshOffers();
+                  await productController.refreshProducts();
+                },
+                child: Obx(() {
+                  if (offerController.isLoading.value) {
+                    return _buildLoadingState();
+                  }
 
-                if (productController.isLoading.value) {
-                  return _buildLoadingState();
-                }
+                  if (offerController.offers.isEmpty) {
+                    return _buildEmptyState(isDark);
+                  }
 
-                if (discountedProducts.isEmpty) {
-                  return _buildEmptyState(isDark);
-                }
-
-                return _buildProductsGrid(
-                  discountedProducts,
-                  wishlistController,
-                  isDark,
-                );
-              }),
+                  return _buildOffersContent(
+                    offerController,
+                    productController,
+                    wishlistController,
+                    isDark,
+                  );
+                }),
+              ),
             ),
           ],
         ),
@@ -112,9 +91,7 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildHeader(BuildContext context, bool isDark) {
-    final productController = Get.find<ProductController>();
-
+  Widget _buildHeader(BuildContext context, bool isDark, OfferController offerController) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
@@ -178,9 +155,7 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
                   ],
                 ),
                 Obx(() {
-                  final count = productController.products
-                      .where((p) => p.hasDiscount)
-                      .length;
+                  final count = offerController.offers.length;
                   return Text(
                     '$count exclusive offers',
                     style: TextStyle(
@@ -193,38 +168,19 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
             ),
           ),
 
-          // Discount badge
+          // Refresh button
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.percent,
-                  color: Colors.red.shade600,
-                  size: 18,
-                ),
-                const Gap(4),
-                Text(
-                  'UP TO 70%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red.shade600,
-                  ),
-                ),
-              ],
+            child: IconButton(
+              onPressed: () => offerController.refreshOffers(),
+              icon: const Icon(
+                Icons.refresh,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -232,160 +188,322 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildCountdownBanner(bool isDark) {
-    final hours = _remainingTime.inHours;
-    final minutes = _remainingTime.inMinutes.remainder(60);
-    final seconds = _remainingTime.inSeconds.remainder(60);
+  Widget _buildOffersContent(
+    OfferController offerController,
+    ProductController productController,
+    WishlistController wishlistController,
+    bool isDark,
+  ) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Offers Section
+          Text(
+            'Available Offers',
+            style: AppTextStyle.h3.copyWith(
+              color: isDark ? Colors.white : Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const Gap(12),
 
+          // Offers List
+          if (offerController.offers.isNotEmpty)
+            ...offerController.offers.map((offer) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildOfferCard(offer, isDark),
+            )),
+
+          const Gap(24),
+
+          // Discounted Products Section
+          Obx(() {
+            final discountedProducts = productController.products
+                .where((product) => product.hasDiscount)
+                .toList();
+
+            if (discountedProducts.isEmpty) {
+              return const SizedBox.shrink();
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Discounted Products',
+                  style: AppTextStyle.h3.copyWith(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Gap(12),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: discountedProducts.length,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.58,
+                  ),
+                  itemBuilder: (context, index) {
+                    final product = discountedProducts[index];
+                    return _buildProductCard(product, wishlistController, isDark);
+                  },
+                ),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOfferCard(OfferModel offer, bool isDark) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: isDark
-              ? [Colors.grey.shade900, Colors.grey.shade800]
-              : [Colors.grey.shade100, Colors.white],
+          colors: offer.isEndingSoon
+              ? [Colors.orange.shade600, Colors.red.shade600]
+              : [Colors.blue.shade600, Colors.purple.shade600],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.red.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.red.withValues(alpha: 0.1),
+            color: (offer.isEndingSoon ? Colors.orange : Colors.blue)
+                .withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Flash icon
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.red.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: ScaleTransition(
-              scale: _pulseAnimation,
-              child: Icon(
-                Icons.flash_on,
-                color: Colors.red.shade600,
-                size: 24,
-              ),
-            ),
-          ),
-          const Gap(12),
-
-          // Text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Flash Sale Ends In',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                Text(
-                  'Hurry up! Limited time offer',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Countdown boxes
+          // Header Row
           Row(
             children: [
-              _buildTimeBox(hours.toString().padLeft(2, '0'), 'HRS', isDark),
-              const Gap(6),
-              Text(
-                ':',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade600,
+              // Discount Badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ScaleTransition(
+                      scale: _pulseAnimation,
+                      child: Icon(
+                        offer.isPercentage ? Icons.percent : Icons.attach_money,
+                        color: Colors.red.shade600,
+                        size: 18,
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      offer.discountText,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red.shade600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const Gap(6),
-              _buildTimeBox(minutes.toString().padLeft(2, '0'), 'MIN', isDark),
-              const Gap(6),
-              Text(
-                ':',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade600,
+              const Spacer(),
+
+              // Ending Soon Badge
+              if (offer.isEndingSoon)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.timer, color: Colors.white, size: 14),
+                      Gap(4),
+                      Text(
+                        'Ending Soon!',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Gap(6),
-              _buildTimeBox(seconds.toString().padLeft(2, '0'), 'SEC', isDark),
             ],
+          ),
+
+          const Gap(16),
+
+          // Title
+          Text(
+            offer.title,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+
+          const Gap(8),
+
+          // Details Row
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            children: [
+              // Code (if available)
+              if (offer.code != null && offer.code!.isNotEmpty)
+                _buildOfferDetail(
+                  Icons.confirmation_number,
+                  'Code: ${offer.code}',
+                ),
+
+              // Minimum Purchase
+              if (offer.minimumPurchase != null)
+                _buildOfferDetail(
+                  Icons.shopping_cart,
+                  'Min: \$${offer.minimumPurchase!.toStringAsFixed(0)}',
+                ),
+
+              // Max Discount
+              if (offer.maximumDiscount != null)
+                _buildOfferDetail(
+                  Icons.savings,
+                  'Max: \$${offer.maximumDiscount!.toStringAsFixed(0)}',
+                ),
+
+              // Target
+              if (offer.target != null)
+                _buildOfferDetail(
+                  _getTargetIcon(offer.target!),
+                  _getTargetText(offer.target!),
+                ),
+            ],
+          ),
+
+          // Remaining Time
+          if (offer.remainingTime != null && offer.remainingTime!.inSeconds > 0) ...[
+            const Gap(12),
+            _buildCountdownRow(offer.remainingTime!),
+          ],
+
+          // Usage Info
+          if (offer.usageLimit != null) ...[
+            const Gap(12),
+            LinearProgressIndicator(
+              value: offer.usedCount / offer.usageLimit!,
+              backgroundColor: Colors.white.withValues(alpha: 0.3),
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            const Gap(4),
+            Text(
+              '${offer.usedCount}/${offer.usageLimit} used',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOfferDetail(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white, size: 14),
+          const Gap(4),
+          Text(
+            text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTimeBox(String value, String label, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.red.shade600,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.red.withValues(alpha: 0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+  Widget _buildCountdownRow(Duration remaining) {
+    final hours = remaining.inHours;
+    final minutes = remaining.inMinutes.remainder(60);
+    final seconds = remaining.inSeconds.remainder(60);
+
+    return Row(
+      children: [
+        const Icon(Icons.access_time, color: Colors.white, size: 16),
+        const Gap(8),
+        Text(
+          'Ends in: ${hours}h ${minutes}m ${seconds}s',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
           ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 8,
-              color: Colors.white.withValues(alpha: 0.8),
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
+  }
+
+  IconData _getTargetIcon(String target) {
+    switch (target.toLowerCase()) {
+      case 'product':
+        return Icons.inventory_2;
+      case 'category':
+        return Icons.category;
+      default:
+        return Icons.all_inclusive;
+    }
+  }
+
+  String _getTargetText(String target) {
+    switch (target.toLowerCase()) {
+      case 'product':
+        return 'Specific Product';
+      case 'category':
+        return 'Category';
+      default:
+        return 'All Products';
+    }
   }
 
   Widget _buildLoadingState() {
     return Skeletonizer(
       enabled: true,
-      child: GridView.builder(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemCount: 6,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 0.65,
-        ),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: 4,
         itemBuilder: (context, index) {
           return Container(
+            height: 150,
+            margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
               color: Colors.grey.shade200,
               borderRadius: BorderRadius.circular(16),
@@ -430,9 +548,9 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
           ),
           const Gap(24),
           ElevatedButton.icon(
-            onPressed: () => Get.back(),
-            icon: const Icon(Icons.shopping_bag_outlined),
-            label: const Text('Continue Shopping'),
+            onPressed: () => Get.find<OfferController>().refreshOffers(),
+            icon: const Icon(Icons.refresh),
+            label: const Text('Refresh'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade600,
               foregroundColor: Colors.white,
@@ -444,34 +562,6 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildProductsGrid(
-    List<Product> products,
-    WishlistController wishlistController,
-    bool isDark,
-  ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final screenWidth = constraints.maxWidth;
-        final crossAxisCount = screenWidth > 600 ? 3 : 2;
-
-        return GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          itemCount: products.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 12,
-            childAspectRatio: 0.62,
-          ),
-          itemBuilder: (context, index) {
-            final product = products[index];
-            return _buildProductCard(product, wishlistController, isDark);
-          },
-        );
-      },
     );
   }
 
@@ -499,7 +589,7 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
           children: [
             // Image Section
             Expanded(
-              flex: 5,
+              flex: 6,
               child: Stack(
                 children: [
                   // Product Image
@@ -524,7 +614,7 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
                               width: double.infinity,
                               height: double.infinity,
                               placeholder: (context, url) => const Center(
-                                child: Bone.square(size: 100),
+                                child: CircularProgressIndicator(),
                               ),
                               errorWidget: (context, url, error) => const Icon(
                                 Icons.image_not_supported,
@@ -540,7 +630,7 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
                     ),
                   ),
 
-                  // Discount Badge (Top Left)
+                  // Discount Badge
                   Positioned(
                     top: 8,
                     left: 8,
@@ -554,53 +644,28 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
                           colors: [Colors.red.shade600, Colors.orange.shade600],
                         ),
                         borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.red.withValues(alpha: 0.4),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.local_fire_department,
-                            color: Colors.white,
-                            size: 14,
-                          ),
-                          const Gap(4),
-                          Text(
-                            '-${product.calculatedDiscount.toStringAsFixed(0)}%',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        '-${product.calculatedDiscount.toStringAsFixed(0)}%',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
                   ),
 
-                  // Wishlist Button (Top Right)
+                  // Wishlist Button
                   Positioned(
                     top: 8,
                     right: 8,
                     child: Container(
                       height: 36,
                       width: 36,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
                       ),
                       child: Obx(() => IconButton(
                             padding: EdgeInsets.zero,
@@ -617,154 +682,58 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
                           )),
                     ),
                   ),
-
-                  // Limited Stock Badge
-                  if (product.stock < 10 && product.stock > 0)
-                    Positioned(
-                      bottom: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade600,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.timer,
-                              color: Colors.white,
-                              size: 12,
-                            ),
-                            const Gap(4),
-                            Text(
-                              'Only ${product.stock} left!',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                 ],
               ),
             ),
 
-            // Product Info Section
+            // Product Info
             Expanded(
-              flex: 3,
+              flex: 4,
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Product Name
                     Text(
                       product.name,
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: 13,
                         color: isDark ? Colors.white : Colors.black87,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-
-                    // Price Section
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
                       children: [
-                        // Original Price (Strikethrough)
-                        Row(
-                          children: [
-                            Text(
-                              'Was: ',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey.shade500,
-                              ),
-                            ),
-                            Text(
-                              '\$${product.displayOriginalPrice.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey.shade500,
-                                decoration: TextDecoration.lineThrough,
-                                decorationColor: Colors.grey.shade500,
-                                decorationThickness: 2,
-                              ),
-                            ),
-                          ],
+                        Text(
+                          '\$${product.displayOriginalPrice.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade500,
+                            decoration: TextDecoration.lineThrough,
+                          ),
                         ),
-                        const Gap(4),
-
-                        // New Price & Rating
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // New Price
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                '\$${product.price.toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.red.shade600,
-                                ),
-                              ),
-                            ),
-
-                            // Savings
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                'Save \$${(product.displayOriginalPrice - product.price).toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.green.shade600,
-                                ),
-                              ),
-                            ),
-                          ],
+                        const Gap(8),
+                        Text(
+                          '\$${product.effectivePrice.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.red.shade600,
+                          ),
                         ),
                       ],
                     ),
-
-                    // Rating
                     Row(
                       children: [
                         ...List.generate(5, (index) {
                           return Icon(
                             index < product.rating.floor()
                                 ? Icons.star
-                                : (index < product.rating
-                                    ? Icons.star_half
-                                    : Icons.star_border),
-                            size: 14,
+                                : Icons.star_border,
+                            size: 12,
                             color: Colors.amber,
                           );
                         }),
@@ -772,7 +741,7 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
                         Text(
                           '(${product.rating})',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: Colors.grey.shade600,
                           ),
                         ),

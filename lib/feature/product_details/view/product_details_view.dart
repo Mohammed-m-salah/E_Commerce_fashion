@@ -121,12 +121,50 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    Text(
-                      '\$${widget.product.price.toStringAsFixed(2)}',
-                      style: AppTextStyle.h2.copyWith(
-                        color: const Color(0xFFff5722),
+                    // Show discounted price if applicable
+                    if (widget.product.hasDiscount) ...[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            '\$${widget.product.displayOriginalPrice.toStringAsFixed(2)}',
+                            style: AppTextStyle.bodylarge.copyWith(
+                              color: Colors.grey,
+                              decoration: TextDecoration.lineThrough,
+                            ),
+                          ),
+                          Text(
+                            '\$${widget.product.effectivePrice.toStringAsFixed(2)}',
+                            style: AppTextStyle.h2.copyWith(
+                              color: const Color(0xFFff5722),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '-${widget.product.calculatedDiscount.toStringAsFixed(0)}%',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    ] else ...[
+                      Text(
+                        '\$${widget.product.effectivePrice.toStringAsFixed(2)}',
+                        style: AppTextStyle.h2.copyWith(
+                          color: const Color(0xFFff5722),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
 

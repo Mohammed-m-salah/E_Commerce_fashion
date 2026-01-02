@@ -9,8 +9,8 @@ class CartItem {
     this.quantity = 1,
   });
 
-  // Calculate total price for this item
-  double get totalPrice => product.price * quantity;
+  // Calculate total price for this item (uses effectivePrice for discounts)
+  double get totalPrice => product.effectivePrice * quantity;
 
   // JSON serialization for storage
   Map<String, dynamic> toJson() {

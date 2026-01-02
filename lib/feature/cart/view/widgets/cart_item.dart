@@ -63,10 +63,33 @@ class CartItemWidget extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Gap(10),
-                Text(
-                  '\$${cartItem.product.price.toStringAsFixed(2)}',
-                  style: AppTextStyle.buttonmedium,
-                ),
+                // Show discounted price if applicable
+                if (cartItem.product.hasDiscount) ...[
+                  Row(
+                    children: [
+                      Text(
+                        '\$${cartItem.product.displayOriginalPrice.toStringAsFixed(2)}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '\$${cartItem.product.effectivePrice.toStringAsFixed(2)}',
+                        style: AppTextStyle.buttonmedium.copyWith(
+                          color: Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Text(
+                    '\$${cartItem.product.effectivePrice.toStringAsFixed(2)}',
+                    style: AppTextStyle.buttonmedium,
+                  ),
+                ],
               ],
             ),
           ),

@@ -4,6 +4,8 @@ import 'package:e_commerce_fullapp/feature/cart/data/cart_controller.dart';
 import 'package:e_commerce_fullapp/feature/check_out/data/address_controller.dart';
 import 'package:e_commerce_fullapp/feature/check_out/data/order_model.dart';
 import 'package:e_commerce_fullapp/feature/check_out/data/payment_method_controller.dart';
+import 'package:e_commerce_fullapp/feature/offers/data/offer_controller.dart';
+import 'package:e_commerce_fullapp/feature/offers/data/offer_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -26,6 +28,19 @@ class CheckoutController extends GetxController {
 
   // حالة معالجة الطلب
   var isProcessingOrder = false.obs;
+
+  // ========== كود الخصم ==========
+  // العرض المطبق حالياً
+  var appliedOffer = Rxn<OfferModel>();
+
+  // قيمة الخصم
+  var discountAmount = 0.0.obs;
+
+  // حالة التحقق من الكود
+  var isValidatingCode = false.obs;
+
+  // كود الخصم المدخل
+  var discountCode = ''.obs;
 
   @override
   void onInit() {
@@ -69,10 +84,113 @@ class CheckoutController extends GetxController {
     return subtotal * taxRate;
   }
 
-  /// حساب المجموع الكلي
+  /// حساب المجموع الكلي (بعد الخصم)
   double get total {
+    final totalBeforeDiscount = subtotal + shippingCost + tax;
+    return (totalBeforeDiscount - discountAmount.value).clamp(0, totalBeforeDiscount);
+  }
+
+  /// المجموع قبل الخصم
+  double get totalBeforeDiscount {
     return subtotal + shippingCost + tax;
   }
+
+  // ========== دوال كود الخصم ==========
+
+  /// تطبيق كود الخصم
+  Future<bool> applyDiscountCode(String code) async {
+    if (code.isEmpty) {
+      Get.snackbar(
+        'Error',
+        'Please enter a discount code',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+      return false;
+    }
+
+    isValidatingCode.value = true;
+
+    try {
+      final offerController = Get.find<OfferController>();
+      final offer = await offerController.validateCode(code);
+
+      if (offer == null) {
+        Get.snackbar(
+          'Invalid Code',
+          'This discount code is invalid or expired',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        isValidatingCode.value = false;
+        return false;
+      }
+
+      // التحقق من الحد الأدنى للشراء
+      if (offer.minimumPurchase != null && subtotal < offer.minimumPurchase!) {
+        Get.snackbar(
+          'Minimum Purchase Required',
+          'Minimum purchase of \$${offer.minimumPurchase!.toStringAsFixed(2)} required',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        isValidatingCode.value = false;
+        return false;
+      }
+
+      // حساب قيمة الخصم
+      final discount = offerController.calculateDiscount(subtotal, offer);
+
+      // تطبيق الخصم
+      appliedOffer.value = offer;
+      discountAmount.value = discount;
+      discountCode.value = code;
+
+      Get.snackbar(
+        'Success!',
+        'Discount code applied: -\$${discount.toStringAsFixed(2)}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+
+      isValidatingCode.value = false;
+      return true;
+    } catch (e) {
+      print('❌ Error applying discount code: $e');
+      Get.snackbar(
+        'Error',
+        'Failed to apply discount code',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+      isValidatingCode.value = false;
+      return false;
+    }
+  }
+
+  /// إزالة كود الخصم
+  void removeDiscountCode() {
+    appliedOffer.value = null;
+    discountAmount.value = 0.0;
+    discountCode.value = '';
+
+    Get.snackbar(
+      'Removed',
+      'Discount code has been removed',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: Colors.grey,
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+    );
+  }
+
+  /// هل يوجد خصم مطبق؟
+  bool get hasDiscount => appliedOffer.value != null && discountAmount.value > 0;
 
   /// التحقق من إمكانية إتمام الطلب
   bool validateCheckout() {

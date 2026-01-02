@@ -46,6 +46,22 @@ class Product {
     return originalPrice ?? price;
   }
 
+  /// السعر الفعلي بعد الخصم (يُحسب تلقائياً)
+  /// إذا كان هناك original_price و discount_percentage، يتم حساب السعر
+  /// وإلا يُستخدم price العادي
+  double get effectivePrice {
+    // إذا كان هناك سعر أصلي ونسبة خصم، احسب السعر بعد الخصم
+    if (originalPrice != null && discountPercentage != null && discountPercentage! > 0) {
+      return originalPrice! * (1 - discountPercentage! / 100);
+    }
+    // إذا كان هناك سعر أصلي أكبر من السعر الحالي، استخدم السعر الحالي
+    if (originalPrice != null && originalPrice! > price) {
+      return price;
+    }
+    // وإلا استخدم السعر العادي
+    return price;
+  }
+
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       id: json['id'] as String,

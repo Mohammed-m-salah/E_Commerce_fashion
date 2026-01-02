@@ -20,6 +20,8 @@ class OrderSummary extends StatelessWidget {
       decoration: checkoutBoxDecoration(context),
       child: Obx(() {
         // استخدام Obx للتحديث التلقائي عند تغيير السلة
+        final hasDiscount = checkoutController.hasDiscount;
+
         return Column(
           children: [
             // المجموع الفرعي (مجموع أسعار المنتجات)
@@ -41,6 +43,43 @@ class OrderSummary extends StatelessWidget {
               title: 'Tax (5%)',
               value: '\$${checkoutController.tax.toStringAsFixed(2)}',
             ),
+
+            // الخصم (إذا كان مطبقاً)
+            if (hasDiscount) ...[
+              const Gap(8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.discount,
+                        size: 16,
+                        color: Colors.green.shade600,
+                      ),
+                      const Gap(4),
+                      Text(
+                        'Discount',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.green.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    '-\$${checkoutController.discountAmount.value.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
             const Divider(height: 20),
 
             // المجموع الكلي

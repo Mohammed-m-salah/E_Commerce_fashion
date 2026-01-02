@@ -1,5 +1,6 @@
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
 import 'package:e_commerce_fullapp/feature/check_out/view/widgets/bottom_bar.dart';
+import 'package:e_commerce_fullapp/feature/check_out/view/widgets/discount_code_widget.dart';
 import 'package:e_commerce_fullapp/feature/check_out/view/widgets/order_summery.dart';
 import 'package:e_commerce_fullapp/feature/check_out/view/widgets/payment_method.dart';
 import 'package:e_commerce_fullapp/feature/check_out/view/widgets/selection_tile.dart';
@@ -34,15 +35,18 @@ class CheckOutView extends StatelessWidget {
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(16),
                 child: Column(
-                  children: const [
-                    SectionTitle(title: 'Shipping Address'),
-                    AddressCard(),
-                    Gap(20),
-                    SectionTitle(title: 'Payment Method'),
-                    PaymentCard(),
-                    Gap(20),
-                    SectionTitle(title: 'Order Summary'),
-                    OrderSummary(),
+                  children: [
+                    const SectionTitle(title: 'Shipping Address'),
+                    const AddressCard(),
+                    const Gap(20),
+                    const SectionTitle(title: 'Payment Method'),
+                    const PaymentCard(),
+                    const Gap(20),
+                    const SectionTitle(title: 'Discount Code'),
+                    const DiscountCodeWidget(),
+                    const Gap(20),
+                    const SectionTitle(title: 'Order Summary'),
+                    const OrderSummary(),
                   ],
                 ),
               ),
