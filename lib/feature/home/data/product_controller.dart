@@ -117,7 +117,7 @@ class ProductController extends GetxController {
       }
 
       if (selectedCategory.value != 'All' &&
-          product.category != selectedCategory.value) {
+          product.category.toLowerCase() != selectedCategory.value.toLowerCase()) {
         return false;
       }
 
