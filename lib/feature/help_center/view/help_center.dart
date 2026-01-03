@@ -1,5 +1,6 @@
 import 'package:e_commerce_fullapp/core/utils/app_textstile.dart';
 import 'package:e_commerce_fullapp/feature/help_center/view/widget/header_helpcenter.dart';
+import 'package:e_commerce_fullapp/feature/help_center/view/admin_chat_view.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -214,7 +215,14 @@ class HelpCenter extends StatelessWidget {
                                     icon: Icons.chat_bubble_outline,
                                     label: 'Chat',
                                     isDark: isDark,
-                                    onTap: () {},
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const AdminChatView(),
+                                        ),
+                                      );
+                                    },
                                   ),
                                   _buildContactButton(
                                     icon: Icons.email_outlined,
