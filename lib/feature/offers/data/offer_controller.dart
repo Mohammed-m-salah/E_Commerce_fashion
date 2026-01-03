@@ -28,10 +28,10 @@ class OfferController extends GetxController {
       isLoading.value = true;
       errorMessage.value = '';
 
-      // جلب جميع العروض أولاً للتشخيص
+      // جلب جميع العروض مع اسم الفئة من جدول categories
       final response = await supabase
           .from('offers')
-          .select()
+          .select('*, categories(name)')
           .order('created_at', ascending: false);
 
       debugPrint('📦 Raw offers from DB: ${response.length}');

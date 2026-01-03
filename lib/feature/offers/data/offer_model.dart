@@ -17,6 +17,7 @@ class OfferModel {
   final String? target; // all, product, category
   final String? productId;
   final String? categoryId;
+  final String? categoryName; // اسم الفئة (يتم جلبه من جدول categories)
 
   OfferModel({
     required this.id,
@@ -36,6 +37,7 @@ class OfferModel {
     this.target,
     this.productId,
     this.categoryId,
+    this.categoryName,
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
@@ -65,6 +67,10 @@ class OfferModel {
       target: json['target']?.toString(),
       productId: json['product_id']?.toString(),
       categoryId: json['category_id']?.toString(),
+      // جلب اسم الفئة من العلاقة مع جدول categories
+      categoryName: json['categories'] != null
+          ? json['categories']['name']?.toString()
+          : null,
     );
   }
 

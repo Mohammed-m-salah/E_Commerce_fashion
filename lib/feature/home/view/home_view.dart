@@ -9,6 +9,7 @@ import 'package:e_commerce_fullapp/feature/home/view/widgets/newcollection.dart'
 import 'package:e_commerce_fullapp/feature/home/view/widgets/notification_view.dart';
 import 'package:e_commerce_fullapp/feature/home/view/widgets/product_grid.dart';
 import 'package:e_commerce_fullapp/feature/offers/view/offers_view.dart';
+import 'package:e_commerce_fullapp/feature/offers/data/offer_controller.dart';
 import 'package:e_commerce_fullapp/shared/custome_searchfield.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -87,7 +88,6 @@ class _HomeViewState extends State<HomeView> {
               const Gap(16),
               const NewCollection(),
               const Gap(16),
-              // Hot Deals Banner
               _buildHotDealsBanner(context),
               const Gap(16),
               Padding(
@@ -126,12 +126,17 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildHotDealsBanner(BuildContext context) {
     final productController = Get.find<ProductController>();
+    final offerController = Get.find<OfferController>();
 
     return Obx(() {
       final discountCount =
           productController.products.where((p) => p.hasDiscount).length;
+      final offersCount = offerController.offers.length;
 
-      if (discountCount == 0) return const SizedBox.shrink();
+      if (discountCount == 0 && offersCount == 0)
+        return const SizedBox.shrink();
+
+      final totalDeals = discountCount + offersCount;
 
       return GestureDetector(
         onTap: () => Get.to(() => const OffersView()),
@@ -158,7 +163,6 @@ class _HomeViewState extends State<HomeView> {
           ),
           child: Row(
             children: [
-              // Fire Icon
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -173,7 +177,6 @@ class _HomeViewState extends State<HomeView> {
               ),
               const Gap(16),
 
-              // Text Content
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +190,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     const Gap(4),
                     Text(
-                      '$discountCount products with special discounts!',
+                      '$totalDeals deals & offers available!',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.9),
                         fontSize: 13,

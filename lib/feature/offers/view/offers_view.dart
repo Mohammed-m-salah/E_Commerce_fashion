@@ -11,6 +11,7 @@ import 'package:e_commerce_fullapp/feature/offers/data/offer_controller.dart';
 import 'package:e_commerce_fullapp/feature/offers/data/offer_model.dart';
 import 'package:e_commerce_fullapp/feature/product_details/view/product_details_view.dart';
 import 'package:e_commerce_fullapp/feature/wishlist/data/wishlist_controller.dart';
+import 'package:e_commerce_fullapp/feature/offers/view/category_offer_view.dart';
 
 class OffersView extends StatefulWidget {
   const OffersView({super.key});
@@ -264,7 +265,9 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
   }
 
   Widget _buildOfferCard(OfferModel offer, bool isDark) {
-    return Container(
+    return GestureDetector(
+      onTap: () => _navigateToOffer(offer),
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -424,7 +427,68 @@ class _OffersViewState extends State<OffersView> with TickerProviderStateMixin {
           ],
         ],
       ),
+      ),
     );
+  }
+
+  void _navigateToOffer(OfferModel offer) {
+    final productController = Get.find<ProductController>();
+
+    // إذا كان العرض لمنتج معين
+    if (offer.productId != null && offer.productId!.isNotEmpty) {
+      final product = productController.getProductById(offer.productId!);
+      if (product != null) {
+        Get.to(() => ProductDetailsView(product: product));
+      } else {
+        Get.snackbar(
+          'Product Not Found',
+          'The product for this offer is no longer available',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    }
+    // إذا كان العرض لفئة معينة
+    else if (offer.categoryName != null && offer.categoryName!.isNotEmpty) {
+      // البحث عن الفئة المطابقة (case-insensitive)
+      final matchingCategory = productController.categories.firstWhere(
+        (cat) => cat.toLowerCase() == offer.categoryName!.toLowerCase(),
+        orElse: () => offer.categoryName!,
+      );
+
+      debugPrint('🏷️ Offer categoryName: ${offer.categoryName}');
+      debugPrint('🏷️ Matching category: $matchingCategory');
+
+      // التوجيه لصفحة عرض منتجات الفئة (بدون إمكانية تغيير الفئة)
+      Get.to(() => CategoryOfferView(
+            categoryName: matchingCategory,
+            offer: offer,
+          ));
+    }
+    // fallback: إذا كان categoryId موجود لكن categoryName غير متاح
+    else if (offer.categoryId != null && offer.categoryId!.isNotEmpty) {
+      Get.snackbar(
+        'Category Offer',
+        'This offer applies to a specific category. Use code: ${offer.code ?? "N/A"}',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+    // إذا كان العرض لجميع المنتجات - فقط نظهر رسالة عن الكود
+    else {
+      if (offer.code != null && offer.code!.isNotEmpty) {
+        Get.snackbar(
+          'Use Code: ${offer.code}',
+          'Apply this code at checkout to get ${offer.discountText} off!',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+        );
+      } else {
+        Get.snackbar(
+          'Offer Applied',
+          'This offer of ${offer.discountText} applies to all products!',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+    }
   }
 
   Widget _buildOfferDetail(IconData icon, String text) {
