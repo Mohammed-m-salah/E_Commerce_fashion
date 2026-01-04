@@ -7,8 +7,6 @@ class Category {
     required this.name,
   });
 
-  /// تحويل JSON إلى Category object
-  /// يُستخدم عند استلام البيانات من Supabase
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
       id: json['id']?.toString() ?? '',
@@ -16,8 +14,6 @@ class Category {
     );
   }
 
-  /// تحويل Category object إلى JSON
-  /// يُستخدم عند إرسال البيانات إلى Supabase
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -25,7 +21,6 @@ class Category {
     };
   }
 
-  /// فئة "الكل" الافتراضية
   static Category get allCategory => Category(
         id: 'all',
         name: 'All',

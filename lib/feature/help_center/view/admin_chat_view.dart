@@ -1,5 +1,11 @@
+import 'package:e_commerce_fullapp/feature/help_center/controller/chat_controller.dart';
+import 'package:e_commerce_fullapp/feature/help_center/data/models/message_model.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_instance/src/extension_instance.dart';
+import 'package:get/get_rx/src/rx_workers/rx_workers.dart';
+import 'package:get/get_state_manager/get_state_manager.dart';
 
 class AdminChatView extends StatefulWidget {
   const AdminChatView({super.key});
@@ -9,15 +15,18 @@ class AdminChatView extends StatefulWidget {
 }
 
 class _AdminChatViewState extends State<AdminChatView> {
+  late final ChatController _chatController;
+
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final List<ChatMessage> _messages = [
-    ChatMessage(
-      text: "Hello! Welcome to our support. How can I help you today?",
-      isAdmin: true,
-      time: DateTime.now().subtract(const Duration(minutes: 5)),
-    ),
-  ];
+
+  @override
+  void initState() {
+    _chatController = Get.put(ChatController());
+    ever(_chatController.messages, (_) => _scrollToBottom());
+
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -29,30 +38,9 @@ class _AdminChatViewState extends State<AdminChatView> {
   void _sendMessage() {
     if (_messageController.text.trim().isEmpty) return;
 
-    setState(() {
-      _messages.add(ChatMessage(
-        text: _messageController.text.trim(),
-        isAdmin: false,
-        time: DateTime.now(),
-      ));
-    });
-
+    // إرسال عبر الـ Controller (يحفظ في Supabase)
+    _chatController.sendMessage(_messageController.text);
     _messageController.clear();
-    _scrollToBottom();
-
-    // Simulate admin response
-    Future.delayed(const Duration(seconds: 1), () {
-      if (mounted) {
-        setState(() {
-          _messages.add(ChatMessage(
-            text: "Thank you for your message. Our team will respond shortly.",
-            isAdmin: true,
-            time: DateTime.now(),
-          ));
-        });
-        _scrollToBottom();
-      }
-    });
   }
 
   void _scrollToBottom() {
@@ -84,18 +72,44 @@ class _AdminChatViewState extends State<AdminChatView> {
             Expanded(
               child: Container(
                 color: isDark ? Colors.grey.shade900 : Colors.grey.shade50,
-                child: ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, index) {
-                    return _buildMessageBubble(
-                      _messages[index],
-                      isDark,
-                      theme,
+                child: Obx(() {
+                  if (_chatController.isLoading.value) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFff5722),
+                      ),
                     );
-                  },
-                ),
+                  }
+                  if (_chatController.messages.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Gap(16),
+                          Text(
+                            'Start a conversation with the support team',
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
+                    itemCount: _chatController.messages.length,
+                    itemBuilder: (context, index) {
+                      final message = _chatController.messages[index];
+                      return _buildMessageBubble(message, isDark, theme);
+                    },
+                  );
+                }),
               ),
             ),
 
@@ -175,7 +189,9 @@ class _AdminChatViewState extends State<AdminChatView> {
                       'Online',
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                        color: isDark
+                            ? Colors.grey.shade400
+                            : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -218,22 +234,6 @@ class _AdminChatViewState extends State<AdminChatView> {
               ),
             ),
             const Gap(20),
-            _buildOptionItem(
-              icon: Icons.delete_outline,
-              label: 'Clear Chat',
-              onTap: () {
-                Navigator.pop(context);
-                setState(() {
-                  _messages.clear();
-                  _messages.add(ChatMessage(
-                    text: "Hello! Welcome to our support. How can I help you today?",
-                    isAdmin: true,
-                    time: DateTime.now(),
-                  ));
-                });
-              },
-              isDark: isDark,
-            ),
             _buildOptionItem(
               icon: Icons.info_outline,
               label: 'Chat Info',
@@ -287,13 +287,15 @@ class _AdminChatViewState extends State<AdminChatView> {
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message, bool isDark, ThemeData theme) {
+  Widget _buildMessageBubble(
+      MessageModel message, bool isDark, ThemeData theme) {
     final isAdmin = message.isAdmin;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment: isAdmin ? MainAxisAlignment.start : MainAxisAlignment.end,
+        mainAxisAlignment:
+            isAdmin ? MainAxisAlignment.start : MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (isAdmin) ...[
@@ -344,7 +346,7 @@ class _AdminChatViewState extends State<AdminChatView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message.text,
+                    message.message,
                     style: TextStyle(
                       color: isAdmin
                           ? (isDark ? Colors.white : Colors.black87)
@@ -355,10 +357,12 @@ class _AdminChatViewState extends State<AdminChatView> {
                   ),
                   const Gap(4),
                   Text(
-                    _formatTime(message.time),
+                    _formatTime(message.createdAt),
                     style: TextStyle(
                       color: isAdmin
-                          ? (isDark ? Colors.grey.shade500 : Colors.grey.shade500)
+                          ? (isDark
+                              ? Colors.grey.shade500
+                              : Colors.grey.shade500)
                           : Colors.white.withOpacity(0.7),
                       fontSize: 10,
                     ),
@@ -458,16 +462,4 @@ class _AdminChatViewState extends State<AdminChatView> {
       ),
     );
   }
-}
-
-class ChatMessage {
-  final String text;
-  final bool isAdmin;
-  final DateTime time;
-
-  ChatMessage({
-    required this.text,
-    required this.isAdmin,
-    required this.time,
-  });
 }

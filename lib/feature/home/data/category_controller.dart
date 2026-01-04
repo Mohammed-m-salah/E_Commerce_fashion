@@ -48,7 +48,6 @@ class CategoryController extends GetxController {
       print('❌ خطأ غير متوقع: $e');
       _handleError('خطأ غير متوقع', e.toString());
 
-      // في حالة الخطأ، نحمّل الفئات من المنتجات
       await _fetchCategoriesFromProducts();
     } finally {
       isLoading.value = false;
@@ -123,13 +122,10 @@ class CategoryController extends GetxController {
       final productController = Get.find<ProductController>();
       final categoryName = selectedCategory.value?.name ?? 'All';
 
-      // تحديث الفئة المختارة في ProductController
       productController.selectedCategory.value = categoryName;
 
-      // تطبيق الفلترة على shoppingPageProducts
       productController.applyShoppingFilters();
 
-      // أيضاً تحديث filteredProducts للصفحة الرئيسية
       productController.filterByCategory(categoryName);
     } catch (e) {
       print('⚠️ ProductController غير موجود: $e');

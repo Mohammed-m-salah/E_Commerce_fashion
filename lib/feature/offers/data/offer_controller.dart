@@ -3,17 +3,13 @@ import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'offer_model.dart';
 
-/// وحدة التحكم بالعروض والخصومات
 class OfferController extends GetxController {
   final supabase = Supabase.instance.client;
 
-  /// قائمة العروض
   var offers = <OfferModel>[].obs;
 
-  /// حالة التحميل
   var isLoading = true.obs;
 
-  /// رسالة الخطأ
   var errorMessage = ''.obs;
 
   @override
@@ -22,13 +18,11 @@ class OfferController extends GetxController {
     fetchOffers();
   }
 
-  /// جلب العروض من Supabase
   Future<void> fetchOffers() async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
 
-      // جلب جميع العروض مع اسم الفئة من جدول categories
       final response = await supabase
           .from('offers')
           .select('*, categories(name)')
@@ -36,23 +30,20 @@ class OfferController extends GetxController {
 
       debugPrint('📦 Raw offers from DB: ${response.length}');
 
-      // طباعة بيانات كل عرض للتشخيص
       for (var item in response) {
         debugPrint('   - status: ${item['status']}, title: ${item['title']}');
       }
 
-      // تحويل البيانات إلى قائمة OfferModel (بدون فلتر مؤقتاً)
-      final List<OfferModel> fetchedOffers = (response as List)
-          .map((json) => OfferModel.fromJson(json))
-          .toList();
+      final List<OfferModel> fetchedOffers =
+          (response as List).map((json) => OfferModel.fromJson(json)).toList();
 
-      // طباعة تفاصيل كل عرض
       for (var offer in fetchedOffers) {
         debugPrint('   📋 Offer: ${offer.title}');
         debugPrint('      status: ${offer.status}');
         debugPrint('      startDate: ${offer.startDate}');
         debugPrint('      endDate: ${offer.endDate}');
-        debugPrint('      usageLimit: ${offer.usageLimit}, usedCount: ${offer.usedCount}');
+        debugPrint(
+            '      usageLimit: ${offer.usageLimit}, usedCount: ${offer.usedCount}');
       }
 
       offers.value = fetchedOffers;
@@ -68,7 +59,6 @@ class OfferController extends GetxController {
     }
   }
 
-  /// جلب العروض حسب المنتج
   List<OfferModel> getOffersForProduct(String productId) {
     return offers
         .where((offer) =>
@@ -78,7 +68,6 @@ class OfferController extends GetxController {
         .toList();
   }
 
-  /// جلب العروض حسب الفئة
   List<OfferModel> getOffersForCategory(String categoryId) {
     return offers
         .where((offer) =>
@@ -88,7 +77,6 @@ class OfferController extends GetxController {
         .toList();
   }
 
-  /// جلب عرض بواسطة الكود
   OfferModel? getOfferByCode(String code) {
     try {
       return offers.firstWhere(
@@ -101,7 +89,6 @@ class OfferController extends GetxController {
     }
   }
 
-  /// التحقق من صلاحية كود الخصم
   Future<OfferModel?> validateCode(String code) async {
     try {
       final response = await supabase
@@ -123,7 +110,6 @@ class OfferController extends GetxController {
     }
   }
 
-  /// حساب الخصم على السعر
   double calculateDiscount(double originalPrice, OfferModel offer) {
     double discount;
 
@@ -133,7 +119,6 @@ class OfferController extends GetxController {
       discount = offer.discountValue;
     }
 
-    // تطبيق الحد الأقصى للخصم
     if (offer.maximumDiscount != null && discount > offer.maximumDiscount!) {
       discount = offer.maximumDiscount!;
     }
@@ -141,9 +126,7 @@ class OfferController extends GetxController {
     return discount;
   }
 
-  /// حساب السعر بعد الخصم
   double calculateFinalPrice(double originalPrice, OfferModel offer) {
-    // التحقق من الحد الأدنى للشراء
     if (offer.minimumPurchase != null &&
         originalPrice < offer.minimumPurchase!) {
       return originalPrice;
@@ -153,7 +136,6 @@ class OfferController extends GetxController {
     return (originalPrice - discount).clamp(0, originalPrice);
   }
 
-  /// إعادة تحميل العروض
   Future<void> refreshOffers() async {
     await fetchOffers();
   }

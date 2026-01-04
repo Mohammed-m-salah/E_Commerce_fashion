@@ -1,15 +1,14 @@
-/// نموذج العنوان - يحتوي على معلومات عنوان الشحن
 class Address {
-  final String id; // معرف فريد للعنوان
-  final String label; // تسمية العنوان (Home, Work, etc.)
-  final String fullName; // الاسم الكامل
-  final String phoneNumber; // رقم الهاتف
-  final String streetAddress; // عنوان الشارع
-  final String city; // المدينة
-  final String state; // المحافظة/الولاية
-  final String country; // الدولة
-  final String postalCode; // الرمز البريدي
-  final bool isDefault; // هل هذا العنوان الافتراضي
+  final String id;
+  final String label;
+  final String fullName;
+  final String phoneNumber;
+  final String streetAddress;
+  final String city;
+  final String state;
+  final String country;
+  final String postalCode;
+  final bool isDefault;
 
   Address({
     required this.id,

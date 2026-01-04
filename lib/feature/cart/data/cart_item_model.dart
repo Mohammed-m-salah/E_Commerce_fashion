@@ -9,10 +9,8 @@ class CartItem {
     this.quantity = 1,
   });
 
-  // Calculate total price for this item (uses effectivePrice for discounts)
   double get totalPrice => product.effectivePrice * quantity;
 
-  // JSON serialization for storage
   Map<String, dynamic> toJson() {
     return {
       'product': product.toJson(),
@@ -27,7 +25,6 @@ class CartItem {
     );
   }
 
-  // Create a copy with updated quantity
   CartItem copyWith({int? quantity}) {
     return CartItem(
       product: product,
