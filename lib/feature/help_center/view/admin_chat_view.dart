@@ -27,7 +27,7 @@ class _AdminChatViewState extends State<AdminChatView> {
   Duration _totalDuration = Duration.zero;
 
   @override
-  void initState() {
+  void initState() {  
     _chatController = Get.put(ChatController());
     ever(_chatController.messages, (_) => _scrollToBottom());
 

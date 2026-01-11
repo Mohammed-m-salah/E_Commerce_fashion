@@ -50,6 +50,35 @@ class ChatRepository {
       'is_admin': isAdmin,
       'message_type': 'text',
     });
+
+    // إرسال إشعار
+    await _sendNotification(
+      chatRoomId: chatRoomId,
+      message: message,
+      isAdmin: isAdmin,
+    );
+  }
+
+  /// إرسال إشعار عبر Edge Function
+  Future<void> _sendNotification({
+    required String chatRoomId,
+    required String message,
+    required bool isAdmin,
+  }) async {
+    try {
+      await _supabase.functions.invoke(
+        'dynamic-function',
+        body: {
+          'record': {
+            'chat_room_id': chatRoomId,
+            'message': message,
+            'is_admin': isAdmin,
+          },
+        },
+      );
+    } catch (e) {
+      print('⚠️ Failed to send notification: $e');
+    }
   }
 
   Future<void> sendImageMessage({

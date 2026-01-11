@@ -1,4 +1,5 @@
 import 'package:e_commerce_fullapp/core/config/supabase_config.dart';
+import 'package:e_commerce_fullapp/core/services/firebase_messaging_service.dart';
 import 'package:e_commerce_fullapp/core/services/local_notification_service.dart';
 import 'package:e_commerce_fullapp/core/services/stripe_payment_service.dart';
 import 'package:e_commerce_fullapp/core/theme/app_theme.dart';
@@ -28,13 +29,20 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
+    // Initialize Firebase
+    // تهيئة Firebase للإشعارات
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
     // Initialize Local Notifications
     // تهيئة خدمة الإشعارات المحلية
     await LocalNotificationService().initialize();
+
     // Load environment variables
     await dotenv.load(fileName: ".env");
 
-    // Initialize Supabase
+    // Initialize Supabase FIRST (before FCM)
     await Supabase.initialize(
       url: SupabaseConfig.supabaseUrl,
       anonKey: SupabaseConfig.supabaseAnonKey,
@@ -48,6 +56,10 @@ void main() async {
 
     // Initialize Stripe
     await StripePaymentService.instance.initialize();
+
+    // Initialize Firebase Cloud Messaging AFTER Supabase
+    // تهيئة خدمة الإشعارات من Firebase (بعد Supabase)
+    await FirebaseMessagingService().initialize();
 
     await GetStorage.init();
     Get.put(ThemeController());
