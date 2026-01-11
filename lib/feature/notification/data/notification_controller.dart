@@ -1,80 +1,110 @@
+import 'dart:async';
 import 'package:e_commerce_fullapp/feature/notification/data/notification_model.dart';
+import 'package:e_commerce_fullapp/feature/notification/data/repository/notification_repository.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:uuid/uuid.dart';
 
-/// متحكم الإشعارات
-/// ================
-/// مسؤول عن:
-/// 1. تحميل الإشعارات من التخزين المحلي
-/// 2. حفظ الإشعارات في التخزين المحلي
-/// 3. إضافة إشعارات جديدة
-/// 4. تحديث حالة القراءة
-/// 5. حذف الإشعارات
 class NotificationController extends GetxController {
-  // ============ المتغيرات ============
   final storage = GetStorage();
-
-  // قائمة الإشعارات (Observable)
+  final NotificationRepository _repository = NotificationRepository();
   var notifications = <NotificationModel>[].obs;
-
-  // حالة التحميل
   var isLoading = false.obs;
+  var hasError = false.obs;
+  StreamSubscription? _realtimeSubscription;
 
-  // ============ Lifecycle ============
   @override
   void onInit() {
     super.onInit();
     loadNotifications();
+    _setupRealtimeListener();
   }
 
-  // ============ تحميل الإشعارات ============
-  /// تحميل الإشعارات من التخزين المحلي
-  void loadNotifications() {
+  @override
+  void onClose() {
+    _realtimeSubscription?.cancel();
+    super.onClose();
+  }
+
+  Future<void> loadNotifications() async {
     try {
       isLoading.value = true;
-      final savedNotifications = storage.read('notifications');
+      hasError.value = false;
 
-      if (savedNotifications != null) {
-        notifications.value = (savedNotifications as List)
-            .map((json) => NotificationModel.fromJson(Map<String, dynamic>.from(json)))
-            .toList();
-
-        // ترتيب حسب التاريخ (الأحدث أولاً)
-        notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-        print('✅ تم تحميل ${notifications.length} إشعار');
+      if (_repository.currentUserId != null) {
+        final supabaseNotifications = await _repository.getNotifications();
+        if (supabaseNotifications.isNotEmpty) {
+          notifications.value = supabaseNotifications;
+          _saveToLocal();
+          debugPrint(
+              '✅ Loaded ${notifications.length} notifications from Supabase');
+          return;
+        }
       }
+
+      _loadFromLocal();
     } catch (e) {
-      print('❌ خطأ في تحميل الإشعارات: $e');
+      debugPrint('❌ Error loading notifications: $e');
+      hasError.value = true;
+      _loadFromLocal();
     } finally {
       isLoading.value = false;
     }
   }
 
-  // ============ حفظ الإشعارات ============
-  /// حفظ الإشعارات في التخزين المحلي
-  void saveNotifications() {
+  void _loadFromLocal() {
     try {
-      final notificationsJson = notifications
-          .map((notification) => notification.toJson())
-          .toList();
-      storage.write('notifications', notificationsJson);
-      print('✅ تم حفظ ${notifications.length} إشعار');
+      final savedNotifications = storage.read('notifications');
+      if (savedNotifications != null) {
+        notifications.value = (savedNotifications as List)
+            .map((json) =>
+                NotificationModel.fromJson(Map<String, dynamic>.from(json)))
+            .toList();
+        notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        debugPrint(
+            '✅ Loaded ${notifications.length} notifications from local storage');
+      }
     } catch (e) {
-      print('❌ خطأ في حفظ الإشعارات: $e');
+      debugPrint('❌ Error loading from local: $e');
     }
   }
 
-  // ============ إضافة إشعار جديد ============
-  /// إضافة إشعار جديد للقائمة
-  void addNotification({
+  void _saveToLocal() {
+    try {
+      final notificationsJson =
+          notifications.map((notification) => notification.toJson()).toList();
+      storage.write('notifications', notificationsJson);
+    } catch (e) {
+      debugPrint('❌ Error saving to local: $e');
+    }
+  }
+
+  void _setupRealtimeListener() {
+    if (_repository.currentUserId == null) return;
+
+    _realtimeSubscription = _repository.notificationsStream().listen(
+      (data) {
+        notifications.value =
+            data.map((json) => NotificationModel.fromSupabase(json)).toList();
+        _saveToLocal();
+        debugPrint('🔔 Realtime update: ${notifications.length} notifications');
+      },
+      onError: (e) {
+        debugPrint('❌ Realtime error: $e');
+      },
+    );
+  }
+
+  Future<void> addNotification({
     required String title,
     required String body,
     required NotificationType type,
     Map<String, dynamic>? data,
-  }) {
+  }) async {
+    const uuid = Uuid();
     final notification = NotificationModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: uuid.v4(),
       title: title,
       body: body,
       type: type,
@@ -83,58 +113,55 @@ class NotificationController extends GetxController {
       data: data,
     );
 
-    // إضافة في البداية (الأحدث أولاً)
     notifications.insert(0, notification);
-    saveNotifications();
+    _saveToLocal();
 
-    print('🔔 تم إضافة إشعار: $title');
+    await _repository.saveNotification(notification);
+
+    debugPrint('🔔 Notification added: $title');
   }
 
-  // ============ تحديث حالة القراءة ============
-  /// تحديث إشعار كمقروء
-  void markAsRead(String notificationId) {
+  Future<void> markAsRead(String notificationId) async {
     final index = notifications.indexWhere((n) => n.id == notificationId);
     if (index != -1) {
       notifications[index] = notifications[index].copyWith(isRead: true);
-      saveNotifications();
+      _saveToLocal();
+      await _repository.markAsRead(notificationId);
     }
   }
 
-  /// تحديث جميع الإشعارات كمقروءة
-  void markAllAsRead() {
-    notifications.value = notifications
-        .map((n) => n.copyWith(isRead: true))
-        .toList();
-    saveNotifications();
-    print('✅ تم تحديث جميع الإشعارات كمقروءة');
+  Future<void> markAllAsRead() async {
+    notifications.value =
+        notifications.map((n) => n.copyWith(isRead: true)).toList();
+    _saveToLocal();
+    await _repository.markAllAsRead();
+    debugPrint('✅ All notifications marked as read');
   }
 
-  // ============ حذف الإشعارات ============
-  /// حذف إشعار معين
-  void deleteNotification(String notificationId) {
+  Future<void> deleteNotification(String notificationId) async {
     notifications.removeWhere((n) => n.id == notificationId);
-    saveNotifications();
+    _saveToLocal();
+    await _repository.deleteNotification(notificationId);
   }
 
-  /// حذف جميع الإشعارات
-  void clearAllNotifications() {
+  Future<void> clearAllNotifications() async {
     notifications.clear();
-    saveNotifications();
-    print('🗑️ تم حذف جميع الإشعارات');
+    _saveToLocal();
+    await _repository.clearAllNotifications();
+    debugPrint('🗑️ All notifications cleared');
   }
 
-  // ============ Getters ============
-  /// عدد الإشعارات غير المقروءة
+  Future<void> refreshNotifications() async {
+    await loadNotifications();
+  }
+
   int get unreadCount => notifications.where((n) => !n.isRead).length;
 
-  /// هل يوجد إشعارات غير مقروءة
   bool get hasUnread => unreadCount > 0;
 
-  /// الإشعارات غير المقروءة فقط
   List<NotificationModel> get unreadNotifications =>
       notifications.where((n) => !n.isRead).toList();
 
-  /// الإشعارات حسب النوع
   List<NotificationModel> getNotificationsByType(NotificationType type) {
     return notifications.where((n) => n.type == type).toList();
   }

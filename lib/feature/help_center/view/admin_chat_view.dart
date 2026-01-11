@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:e_commerce_fullapp/feature/help_center/controller/chat_controller.dart';
@@ -21,40 +23,54 @@ class _AdminChatViewState extends State<AdminChatView> {
   final ScrollController _scrollController = ScrollController();
   final AudioPlayer _audioPlayer = AudioPlayer();
 
+  // Stream subscriptions لإلغائها عند الخروج
+  StreamSubscription? _playerStateSubscription;
+  StreamSubscription? _positionSubscription;
+  StreamSubscription? _durationSubscription;
+  StreamSubscription? _completeSubscription;
+
   String? _currentlyPlayingId;
   bool _isPlaying = false;
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
 
   @override
-  void initState() {  
+  void initState() {
     _chatController = Get.put(ChatController());
     ever(_chatController.messages, (_) => _scrollToBottom());
 
-    _audioPlayer.onPlayerStateChanged.listen((state) {
-      setState(() {
-        _isPlaying = state == PlayerState.playing;
-      });
+    _playerStateSubscription = _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlaying = state == PlayerState.playing;
+        });
+      }
     });
 
-    _audioPlayer.onPositionChanged.listen((position) {
-      setState(() {
-        _currentPosition = position;
-      });
+    _positionSubscription = _audioPlayer.onPositionChanged.listen((position) {
+      if (mounted) {
+        setState(() {
+          _currentPosition = position;
+        });
+      }
     });
 
-    _audioPlayer.onDurationChanged.listen((duration) {
-      setState(() {
-        _totalDuration = duration;
-      });
+    _durationSubscription = _audioPlayer.onDurationChanged.listen((duration) {
+      if (mounted) {
+        setState(() {
+          _totalDuration = duration;
+        });
+      }
     });
 
-    _audioPlayer.onPlayerComplete.listen((_) {
-      setState(() {
-        _currentlyPlayingId = null;
-        _isPlaying = false;
-        _currentPosition = Duration.zero;
-      });
+    _completeSubscription = _audioPlayer.onPlayerComplete.listen((_) {
+      if (mounted) {
+        setState(() {
+          _currentlyPlayingId = null;
+          _isPlaying = false;
+          _currentPosition = Duration.zero;
+        });
+      }
     });
 
     super.initState();
@@ -62,6 +78,12 @@ class _AdminChatViewState extends State<AdminChatView> {
 
   @override
   void dispose() {
+    // إلغاء جميع الاشتراكات أولاً
+    _playerStateSubscription?.cancel();
+    _positionSubscription?.cancel();
+    _durationSubscription?.cancel();
+    _completeSubscription?.cancel();
+
     _messageController.dispose();
     _scrollController.dispose();
     _audioPlayer.dispose();

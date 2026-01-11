@@ -67,6 +67,24 @@ class NotificationModel {
     );
   }
 
+  /// تحويل من Supabase Response
+  factory NotificationModel.fromSupabase(Map<String, dynamic> json) {
+    return NotificationModel(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      body: json['body'] as String,
+      type: NotificationType.values.firstWhere(
+        (e) => e.name == json['type'],
+        orElse: () => NotificationType.general,
+      ),
+      createdAt: DateTime.parse(json['created_at'] as String),
+      isRead: json['is_read'] as bool? ?? false,
+      data: json['data'] != null
+          ? Map<String, dynamic>.from(json['data'])
+          : null,
+    );
+  }
+
   /// تحويل إلى JSON (للتخزين المحلي)
   Map<String, dynamic> toJson() {
     return {
